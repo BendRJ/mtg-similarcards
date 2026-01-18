@@ -1,4 +1,9 @@
+"""
+Docstring for database.sql.insert.example_insert
+"""
 from database.db import get_cursor
+
+card_name = "Lumra, Bellow of the Woods"
 
 with get_cursor() as cur:
     cur.execute("""
@@ -7,7 +12,7 @@ with get_cursor() as cur:
     ON CONFLICT (id) DO UPDATE SET ...
 """, (
     "2c6d7ee7-b635-584f-b96f-59979998134f",  # $1 - id
-    "Lumra, Bellow of the Woods",             # $2 - name
+    card_name,                               # $2 - name
     "{4}{G}{G}",                               # $3 - mana_cost
     6.0,                                       # $4 - cmc
     ["G"],                                     # $5 - colors (array)
@@ -28,4 +33,4 @@ with get_cursor() as cur:
     ["f4816114...", "7d95bac2..."],           # $20 - variations
     ["BLB"]                                    # $21 - printings
 ))
-    print(f"Inserted/Updated card Lumra, Bellow of the Woods")
+    print(f"Inserted/Updated card {card_name}")
