@@ -1,4 +1,4 @@
-CREATE TABLE cards (
+CREATE TABLE sets (
     code TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     type TEXT,
