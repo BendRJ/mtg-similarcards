@@ -3,7 +3,7 @@ Docstring for database.sql.insert.example_insert
 """
 from pathlib import Path
 from typing import cast, LiteralString
-from database.db import get_cursor
+from src.database.db import get_cursor
 
 # Load SQL statement from file
 SQL_FILE = Path(__file__).parent / "cards_insert.sql"
