@@ -1,0 +1,24 @@
+[MASTER]
+# Add the project root to the Python path
+init-hook='import sys; sys.path.append(".")'
+
+[TYPECHECK]
+# Ignore missing member errors for psycopg types
+# These are false positives due to psycopg's implementation
+ignored-classes=psycopg.Connection,psycopg.Cursor
+
+[MESSAGES CONTROL]
+# Disable specific warnings if needed in the future
+# disable=
+
+[FORMAT]
+# Maximum line length
+max-line-length=100
+
+[BASIC]
+# Good variable names
+good-names=i,j,k,e,ex,_,id,db,cur,conn
+
+[DESIGN]
+# Minimum number of public methods for a class
+min-public-methods=0

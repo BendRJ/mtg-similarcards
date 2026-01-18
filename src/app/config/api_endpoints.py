@@ -37,6 +37,4 @@ class APIEndpoints:
             Complete URL for set endpoint
         """
         return APIEndpoints.SETS_ENDPOINT_CODESEARCH.format(set_code=set_code)
-
-
-print(APIEndpoints.get_card_url("2c6d7ee7-b635-584f-b96f-59979998134f"))
+    

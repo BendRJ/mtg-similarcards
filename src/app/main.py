@@ -10,10 +10,10 @@ def main():
     """
     print("Hello from mtg-similarcards!")
     print("\nTesting database connection...")
-    
+
     if test_connection():
         print("✓ Database connection successful!")
-        
+
         # Example: Query the sets table
         print("\nQuerying sets table...")
         try:

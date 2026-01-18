@@ -1,36 +1,69 @@
 """
 Docstring for database.sql.insert.example_insert
 """
+from pathlib import Path
+from typing import cast, LiteralString
 from database.db import get_cursor
 
-card_name = "Lumra, Bellow of the Woods"
+# Load SQL statement from file
+SQL_FILE = Path(__file__).parent / "cards_insert.sql"
+CARDS_INSERT_SQL = cast(LiteralString, SQL_FILE.read_text())
+
+# Card identification
+CARD_ID = "2c6d7ee7-b635-584f-b96f-59979998134f"
+CARD_NAME = "Lumra, Bellow of the Woods"
+
+# Card properties
+MANA_COST = "{4}{G}{G}"
+CMC = 6.0
+COLORS = ["G"]
+COLOR_IDENTITY = ["G"]
+
+# Card type information
+CARD_TYPE = "Legendary Creature — Elemental Bear"
+SUPERTYPES = ["Legendary"]
+TYPES = ["Creature"]
+SUBTYPES = ["Elemental", "Bear"]
+
+# Card metadata
+RARITY = "Mythic"
+SET_CODE = "BLB"
+SET_NAME = "Bloomburrow"
+TEXT = "Vigilance, reach\n..."
+ARTIST = "Matt Stewart"
+NUMBER = "183"
+
+# Card stats
+POWER = "*"
+TOUGHNESS = "*"
+
+# Card layout and variations
+LAYOUT = "normal"
+VARIATIONS = ["f4816114...", "7d95bac2..."]
+PRINTINGS = ["BLB"]
 
 with get_cursor() as cur:
-    cur.execute("""
-    INSERT INTO cards (id, name, mana_cost, cmc, colors, ...)
-    VALUES ($1, $2, $3, $4, $5, ...)
-    ON CONFLICT (id) DO UPDATE SET ...
-""", (
-    "2c6d7ee7-b635-584f-b96f-59979998134f",  # $1 - id
-    card_name,                               # $2 - name
-    "{4}{G}{G}",                               # $3 - mana_cost
-    6.0,                                       # $4 - cmc
-    ["G"],                                     # $5 - colors (array)
-    ["G"],                                     # $6 - color_identity
-    "Legendary Creature — Elemental Bear",    # $7 - type
-    ["Legendary"],                             # $8 - supertypes
-    ["Creature"],                              # $9 - types
-    ["Elemental", "Bear"],                     # $10 - subtypes
-    "Mythic",                                  # $11 - rarity
-    "BLB",                                     # $12 - set_code
-    "Bloomburrow",                             # $13 - set_name
-    "Vigilance, reach\n...",                   # $14 - text
-    "Matt Stewart",                            # $15 - artist
-    "183",                                     # $16 - number
-    "*",                                       # $17 - power
-    "*",                                       # $18 - toughness
-    "normal",                                  # $19 - layout
-    ["f4816114...", "7d95bac2..."],           # $20 - variations
-    ["BLB"]                                    # $21 - printings
-))
-    print(f"Inserted/Updated card {card_name}")
+    cur.execute(CARDS_INSERT_SQL, (
+        CARD_ID,
+        CARD_NAME,
+        MANA_COST,
+        CMC,
+        COLORS,
+        COLOR_IDENTITY,
+        CARD_TYPE,
+        SUPERTYPES,
+        TYPES,
+        SUBTYPES,
+        RARITY,
+        SET_CODE,
+        SET_NAME,
+        TEXT,
+        ARTIST,
+        NUMBER,
+        POWER,
+        TOUGHNESS,
+        LAYOUT,
+        VARIATIONS,
+        PRINTINGS
+    ))
+    print(f"Inserted/Updated card {CARD_NAME}")
