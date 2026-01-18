@@ -1,13 +1,19 @@
+"""
+Main module for mtg-similarcards application
+"""
+import psycopg
 from database.db import test_connection, get_cursor
 
-
 def main():
+    """
+    Docstring for main
+    """
     print("Hello from mtg-similarcards!")
     print("\nTesting database connection...")
-    
+
     if test_connection():
         print("✓ Database connection successful!")
-        
+
         # Example: Query the sets table
         print("\nQuerying sets table...")
         try:
@@ -19,7 +25,7 @@ def main():
                     print(f"✓ Sets table exists with {count} records")
                 else:
                     print("✓ Sets table exists but query returned no results")
-        except Exception as e:
+        except psycopg.Error as e:
             print(f"✗ Error querying sets table: {e}")
     else:
         print("✗ Database connection failed!")

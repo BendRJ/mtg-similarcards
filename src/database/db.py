@@ -57,7 +57,7 @@ def get_db_connection() -> Generator[psycopg.Connection, None, None]:
     try:
         yield conn
         conn.commit()
-    except Exception:
+    except psycopg.Error:
         conn.rollback()
         raise
     finally:
@@ -97,6 +97,6 @@ def test_connection() -> bool:
         with get_cursor() as cur:
             cur.execute("SELECT 1")
             return True
-    except Exception as e:
+    except psycopg.Error as e:
         print(f"Database connection failed: {e}")
         return False
