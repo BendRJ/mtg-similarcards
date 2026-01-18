@@ -15,3 +15,6 @@ wheels/
 # Docker
 postgres_data/
 .docker/
+
+# specific files
+open_tasks.txt
