@@ -8,7 +8,7 @@ This project uses PostgreSQL 16 (Alpine) running in a Docker container. The data
 - **Container:** `mtg-similarcards-db`
 - **Image:** `postgres:16-alpine`
 - **Data Volume:** `postgres_data` (persists database data)
-- **Init Scripts:** `./database/sql/create_tables/` mounted to `/docker-entrypoint-initdb.d`
+- **Init Scripts:** `./src/database/sql/create_tables/` mounted to `/docker-entrypoint-initdb.d`
 
 ## Database Configuration
 
@@ -41,7 +41,7 @@ The `/docker-entrypoint-initdb.d` directory has special behavior:
 
 ### What This Means
 
-**If you add a new SQL file to `database/sql/create_tables/`:**
+**If you add a new SQL file to `src/database/sql/create_tables/`:**
 - Running `docker-compose up` will **NOT** execute the new script
 - Your existing tables and data remain **completely untouched**
 - The new SQL file will sit there unused until the database is recreated
@@ -58,7 +58,7 @@ Execute the SQL file manually in the running container:
 
 ```bash
 # Method A: Execute SQL file directly
-docker exec -i mtg-similarcards-db psql -U mtguser -d mtgcards_db < database/sql/create_tables/your_new_table.sql
+docker exec -i mtg-similarcards-db psql -U mtguser -d mtgcards_db < src/database/sql/create_tables/your_new_table.sql
 
 # Method B: Interactive psql session
 docker exec -it mtg-similarcards-db psql -U mtguser -d mtgcards_db

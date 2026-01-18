@@ -35,7 +35,7 @@ This project uses:
    This will:
    - Pull the PostgreSQL 16 Alpine image
    - Create a container named `mtg-similarcards-db`
-   - Initialize the database with SQL schemas from `database/sql/create_tables/`
+   - Initialize the database with SQL schemas from `src/database/sql/create_tables/`
    - Persist data in a Docker volume
 
 4. **Verify the database is running**
@@ -58,7 +58,7 @@ Database credentials are stored in the `.env` file (not tracked in git). Default
 
 ### Connection in Python
 
-The `database/db.py` module provides convenient connection helpers:
+The `src/database/db.py` module provides convenient connection helpers:
 
 ```python
 from database.db import get_cursor
@@ -110,22 +110,33 @@ For comprehensive database information including:
 ### Running the Application
 
 ```bash
-uv run python main.py
+uv run python src/app/main.py
 ```
 
 ### Project Structure
 
 ```
 mtg-similarcards/
-├── database/
-│   ├── db.py                    # Database connection helpers
-│   ├── schemas/                 # JSON schema definitions
-│   └── sql/
-│       ├── create_tables/       # Table creation SQL scripts
-│       └── insert/              # Sample insert scripts
+├── src/
+│   ├── app/
+│   │   ├── main.py              # Application entry point
+│   │   ├── config/
+│   │   │   └── api_endpoints.py # API endpoint configurations
+│   │   └── services/            # Business logic services
+│   │       ├── card_retrieval_service.py
+│   │       └── vector_service.py
+│   └── database/
+│       ├── __init__.py
+│       ├── db.py                # Database connection helpers
+│       ├── schemas/             # JSON schema definitions
+│       └── sql/
+│           ├── create_tables/   # Table creation SQL scripts
+│           └── insert/          # Sample insert scripts
 ├── docs/
 │   └── runbooks/
 │       └── database.md          # Comprehensive database guide
+├── tests/                       # Test files
+├── .pylintrc                    # Pylint configuration
 ├── docker-compose.yml           # Database container configuration
-├── main.py                      # Application entry point
+├── pyproject.toml               # Project metadata and dependencies
 └── README.md                    # This file
