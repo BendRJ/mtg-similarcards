@@ -62,10 +62,11 @@ from typing import Generator
 
 import psycopg
 from dotenv import load_dotenv
+import logging
 
 # Load environment variables from .env file
 load_dotenv()
-
+logger = logging.getLogger(__name__)
 
 def get_database_url() -> str:
     """Get database URL from environment variables."""
@@ -152,7 +153,8 @@ def test_connection() -> bool:
     try:
         with get_cursor() as cur:
             cur.execute("SELECT 1")
+            logger.info("Database connection successful.")
             return True
     except psycopg.Error as e:
-        print(f"Database connection failed: {e}")
+        logger.info(f"Database connection failed: {e}")
         return False
