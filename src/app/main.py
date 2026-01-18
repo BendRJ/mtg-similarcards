@@ -14,7 +14,7 @@ def main():
     """
     # Configure logging
     setup_logging()
-    
+
     logger.info("Hello from mtg-similarcards!")
     logger.info("Testing database connection...")
 
@@ -27,7 +27,7 @@ def main():
             with get_cursor() as cur:
                 cur.execute("SELECT COUNT(*) FROM sets")
                 result = cur.fetchone()
-                if result:
+                if result and result[0] > 0:
                     count = result[0]
                     logger.info(f"✓ Sets table exists with {count} records")
                 else:

@@ -10,8 +10,9 @@ ignored-classes=psycopg.Connection,psycopg.Cursor
 generated-members=commit,rollback,close,cursor,fetchone,fetchall,execute
 
 [MESSAGES CONTROL]
-# Disable specific warnings if needed in the future
-# disable=
+# Disable specific warnings
+# W1203: logging-fstring-interpolation - Allow f-strings in logging for readability
+disable=logging-fstring-interpolation
 
 [FORMAT]
 # Maximum line length
