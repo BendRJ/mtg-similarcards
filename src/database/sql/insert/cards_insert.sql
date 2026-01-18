@@ -21,27 +21,27 @@ INSERT INTO cards (
     variations,
     printings
 ) VALUES (
-    $1,  -- id
-    $2,  -- name
-    $3,  -- mana_cost
-    $4,  -- cmc
-    $5,  -- colors
-    $6,  -- color_identity
-    $7,  -- type
-    $8,  -- supertypes
-    $9,  -- types
-    $10, -- subtypes
-    $11, -- rarity
-    $12, -- set_code
-    $13, -- set_name
-    $14, -- text
-    $15, -- artist
-    $16, -- number
-    $17, -- power
-    $18, -- toughness
-    $19, -- layout
-    $20, -- variations
-    $21  -- printings
+    %s,  -- id
+    %s,  -- name
+    %s,  -- mana_cost
+    %s,  -- cmc
+    %s,  -- colors
+    %s,  -- color_identity
+    %s,  -- type
+    %s,  -- supertypes
+    %s,  -- types
+    %s,  -- subtypes
+    %s,  -- rarity
+    %s,  -- set_code
+    %s,  -- set_name
+    %s,  -- text
+    %s,  -- artist
+    %s,  -- number
+    %s,  -- power
+    %s,  -- toughness
+    %s,  -- layout
+    %s,  -- variations
+    %s   -- printings
 )
 ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
