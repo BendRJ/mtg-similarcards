@@ -16,5 +16,8 @@ wheels/
 postgres_data/
 .docker/
 
+# IDE settings
+.DS_Store
+
 # specific files
 open_tasks.txt
