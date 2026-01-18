@@ -16,6 +16,7 @@ help:
 	@echo "    run-insert       - Run example insert script (sets PYTHONPATH)"
 	@echo ""
 	@echo "  Python Environment:"
+	@echo "    add-path         - Add project root to PYTHONPATH"
 	@echo "    install          - Install project in editable mode"
 	@echo "    install-dev      - Install with development dependencies"
 	@echo "    clean            - Remove Python cache files"
