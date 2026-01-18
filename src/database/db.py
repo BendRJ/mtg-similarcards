@@ -1,4 +1,60 @@
-"""Database connection and configuration module."""
+"""Database connection and configuration module.
+
+Function Lineage
+----------------
+The functions in this module have the following call hierarchy:
+
+    test_connection()
+        └── get_cursor()
+            └── get_db_connection()
+                └── get_connection()
+                    └── get_database_url()
+
+Function Dependencies:
+- get_database_url() - Base function that retrieves database URL from environment
+- get_connection() - Creates a connection using get_database_url()
+- get_db_connection() - Context manager wrapping get_connection() with auto-cleanup
+- get_cursor() - Higher-level context manager providing both connection and cursor
+- test_connection() - Utility function using get_cursor() to verify connectivity
+
+Recommended Usage:
+- Use get_cursor() for most database operations (handles connection, cursor, and cleanup)
+- Use get_db_connection() when you need direct connection access
+- Use get_connection() only when manual connection management is required
+
+Key Differences Between Connection Functions
+---------------------------------------------
+
+get_connection():
+    - Returns: Raw psycopg.Connection object
+    - Resource Management: MANUAL - You must close the connection yourself
+    - Transaction Management: MANUAL - You must call commit() or rollback()
+    - Error Handling: MANUAL - No automatic rollback on errors
+    - Use When: You need fine-grained control over connection lifecycle, or when
+      integrating with code that expects a connection object
+
+get_db_connection():
+    - Returns: psycopg.Connection via context manager
+    - Resource Management: AUTOMATIC - Connection closed on context exit
+    - Transaction Management: AUTOMATIC - Commits on success, rolls back on error
+    - Error Handling: AUTOMATIC - Rolls back transaction if exception occurs
+    - Use When: You need direct connection access (e.g., for multiple cursors,
+      connection-level operations, or passing to other functions) but want
+      automatic cleanup and transaction handling
+
+get_cursor():
+    - Returns: psycopg.Cursor via context manager
+    - Resource Management: AUTOMATIC - Both cursor and connection cleaned up
+    - Transaction Management: AUTOMATIC - Commits on success, rolls back on error
+    - Error Handling: AUTOMATIC - Rolls back transaction if exception occurs
+    - Use When: Standard database operations where you only need one cursor
+      (this is the RECOMMENDED approach for most use cases)
+
+Summary:
+    get_cursor()        ← RECOMMENDED: Simplest, handles everything automatically
+    get_db_connection() ← Use when you need the connection object directly
+    get_connection()    ← Use only when you need manual control
+"""
 
 import os
 from contextlib import contextmanager

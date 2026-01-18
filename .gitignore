@@ -18,6 +18,7 @@ postgres_data/
 
 # IDE settings
 .DS_Store
+.vscode/
 
 # specific files
 open_tasks.txt
