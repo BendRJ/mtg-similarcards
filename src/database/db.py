@@ -59,10 +59,10 @@ Summary:
 import os
 from contextlib import contextmanager
 from typing import Generator
+import logging
 
 import psycopg
 from dotenv import load_dotenv
-import logging
 
 # Load environment variables from .env file
 load_dotenv()
