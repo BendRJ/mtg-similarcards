@@ -43,7 +43,7 @@ INSERT INTO cards (
     %s,  -- variations
     %s   -- printings
 )
-ON CONFLICT (id) DO UPDATE SET
+ON CONFLICT (id) DO UPDATE SET --prevents duplicate entries based on primary key 'id'
     name = EXCLUDED.name,
     mana_cost = EXCLUDED.mana_cost,
     cmc = EXCLUDED.cmc,
