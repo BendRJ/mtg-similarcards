@@ -12,6 +12,10 @@ wheels/
 # Environment variables
 .env
 
+# Log files
+*.log
+logs/
+
 # Docker
 postgres_data/
 .docker/

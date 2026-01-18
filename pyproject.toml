@@ -12,6 +12,7 @@ description = "App for identifying similar mtg cards via vector embeddings"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "logging>=0.4.9.6",
     "psycopg[binary]>=3.2.0",
     "python-dotenv>=1.0.0",
 ]

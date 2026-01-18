@@ -1,4 +1,4 @@
-.PHONY: help run-insert db-up db-down db-logs db-shell db-reset test-connection add-path install install-dev clean
+.PHONY: help run-main run-insert db-up db-down db-logs db-shell db-reset test-connection install install-dev clean
 
 # Default target - show help
 help:
@@ -15,8 +15,10 @@ help:
 	@echo "  Data Operations:"
 	@echo "    run-insert       - Run example insert script (sets PYTHONPATH)"
 	@echo ""
+	@echo "  Application:"
+	@echo "    run-main         - Run main application (sets PYTHONPATH)"
+	@echo ""
 	@echo "  Python Environment:"
-	@echo "    add-path         - Add project root to PYTHONPATH"
 	@echo "    install          - Install project in editable mode"
 	@echo "    install-dev      - Install with development dependencies"
 	@echo "    clean            - Remove Python cache files"
@@ -49,18 +51,19 @@ db-reset:
 
 test-connection:
 	@echo "Testing database connection..."
-	PYTHONPATH=$(shell pwd) python -c "from src.database.db import test_connection; exit(0 if test_connection() else 1)"
+	PYTHONPATH=$(shell pwd) uv run python -c "from src.database.db import test_connection; exit(0 if test_connection() else 1)"
+
+# Application
+run-main:
+	@echo "Running main application..."
+	PYTHONPATH=$(shell pwd) uv run python src/app/main.py
 
 # Data operations
 run-insert:
 	@echo "Running example insert script..."
-	PYTHONPATH=$(shell pwd) python src/database/sql/insert/example_insert.py
+	PYTHONPATH=$(shell pwd) uv run python src/database/sql/insert/example_insert.py
 
 # Python environment
-add-path:
-	@echo "Adding project root to PYTHONPATH..."
-	export PYTHONPATH=$(shell pwd):$$PYTHONPATH
-	@echo "PYTHONPATH is now: $$PYTHONPATH"
 	
 install:
 	@echo "Installing project in editable mode..."
