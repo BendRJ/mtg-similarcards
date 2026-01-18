@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS cards (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    mana_cost TEXT,
+    cmc REAL,
+    colors TEXT[],
+    color_identity TEXT[],
+    type TEXT,
+    supertypes TEXT[],
+    types TEXT[],
+    subtypes TEXT[],
+    rarity TEXT,
+    set_code TEXT,
+    set_name TEXT,
+    text TEXT,
+    artist TEXT,
+    number TEXT,
+    power TEXT,
+    toughness TEXT,
+    layout TEXT,
+    variations TEXT[],
+    printings TEXT[]
+)

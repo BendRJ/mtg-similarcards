@@ -1,0 +1,41 @@
+{
+	"card": {
+		"name": "Lumra, Bellow of the Woods",
+		"manaCost": "{4}{G}{G}",
+		"cmc": 6.0,
+		"colors": [
+			"G"
+		],
+		"colorIdentity": [
+			"G"
+		],
+		"type": "Legendary Creature — Elemental Bear",
+		"supertypes": [
+			"Legendary"
+		],
+		"types": [
+			"Creature"
+		],
+		"subtypes": [
+			"Elemental",
+			"Bear"
+		],
+		"rarity": "Mythic",
+		"set": "BLB",
+		"setName": "Bloomburrow",
+		"text": "Vigilance, reach\nLumra, Bellow of the Woods's power and toughness are each equal to the number of lands you control.\nWhen Lumra enters, mill four cards. Then return all land cards from your graveyard to the battlefield tapped.",
+		"artist": "Matt Stewart",
+		"number": "183",
+		"power": "*",
+		"toughness": "*",
+		"layout": "normal",
+		"variations": [
+			"f4816114-a089-5bbd-a451-5eef36e7ce2a",
+			"7d95bac2-c3d1-5784-879e-daf2b2e41655"
+		],
+		"printings": [
+			"BLB"
+		],
+		"id": "2c6d7ee7-b635-584f-b96f-59979998134f"
+	}
+}
