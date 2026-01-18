@@ -14,7 +14,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       # Bind mount: SQL scripts here run automatically on first database initialization
       # Note: Scripts only execute when database is created. Delete volume to re-run. 
-      - ./database/sql/create_tables:/docker-entrypoint-initdb.d
+      - ./src/database/sql/create_tables:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mtguser} -d ${POSTGRES_DB:-mtgcards_db}"]
       interval: 10s
