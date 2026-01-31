@@ -61,7 +61,7 @@ run-main:
 # Data operations
 run-insert:
 	@echo "Running example insert script..."
-	PYTHONPATH=$(shell pwd) uv run python src/database/sql/insert/example_insert.py
+	PYTHONPATH=$(shell pwd) uv run python src/database/sql/upsert/example_upsert.py
 
 # Python environment
 	

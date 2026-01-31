@@ -1,13 +1,13 @@
 """
-Docstring for database.sql.insert.example_insert
+Docstring for database.sql.upsert.example_upsert
 """
 from pathlib import Path
 from typing import cast, LiteralString
 from src.database.db import get_cursor
 
 # Load SQL statement from file
-SQL_FILE = Path(__file__).parent / "cards_insert.sql"
-CARDS_INSERT_SQL = cast(LiteralString, SQL_FILE.read_text())
+SQL_FILE = Path(__file__).parent / "cards_upsert.sql"
+CARDS_UPSERT_SQL = cast(LiteralString, SQL_FILE.read_text())
 
 # Card identification
 CARD_ID = "2c6d7ee7-b635-584f-b96f-59979998134f"
@@ -43,7 +43,7 @@ VARIATIONS = ["f4816114...", "7d95bac2..."]
 PRINTINGS = ["BLB"]
 
 with get_cursor() as cur:
-    cur.execute(CARDS_INSERT_SQL, (
+    cur.execute(CARDS_UPSERT_SQL, (
         CARD_ID,
         CARD_NAME,
         MANA_COST,
