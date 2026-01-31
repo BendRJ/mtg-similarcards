@@ -5,23 +5,26 @@ help:
 	@echo "Available targets:"
 	@echo ""
 	@echo "  Database Operations:"
-	@echo "    db-up            - Start PostgreSQL database container"
-	@echo "    db-down          - Stop PostgreSQL database container"
-	@echo "    db-logs          - View database container logs"
-	@echo "    db-shell         - Connect to PostgreSQL shell"
-	@echo "    db-reset         - Stop database and remove volume (fresh start)"
-	@echo "    test-connection  - Test database connection"
+	@echo "    db-up               - Start PostgreSQL database container"
+	@echo "    db-down             - Stop PostgreSQL database container"
+	@echo "    db-logs             - View database container logs"
+	@echo "    db-shell            - Connect to PostgreSQL shell"
+	@echo "    db-reset            - Stop database and remove volume (fresh start)"
+	@echo "    test-connection     - Test database connection"
 	@echo ""
 	@echo "  Data Operations:"
-	@echo "    run-insert       - Run example insert script (sets PYTHONPATH)"
+	@echo "    run-insert          - Run example insert script (sets PYTHONPATH)"
 	@echo ""
 	@echo "  Application:"
-	@echo "    run-main         - Run main application (sets PYTHONPATH)"
+	@echo "    run-main            - Run main application (sets PYTHONPATH)"
+	@echo ""
+	@echo "  Testing:"
+	@echo "    run-endpoint-tests  - Run unittests for endpoint formatting (sets PYTHONPATH)"
 	@echo ""
 	@echo "  Python Environment:"
-	@echo "    install          - Install project in editable mode"
-	@echo "    install-dev      - Install with development dependencies"
-	@echo "    clean            - Remove Python cache files"
+	@echo "    install             - Install project in editable mode"
+	@echo "    install-dev         - Install with development dependencies"
+	@echo "    clean               - Remove Python cache files"
 	@echo ""
 
 # Database management
@@ -62,6 +65,11 @@ run-main:
 run-insert:
 	@echo "Running example insert script..."
 	PYTHONPATH=$(shell pwd) uv run python src/database/sql/upsert/example_upsert.py
+
+# Run Tests
+run-endpoint-tests:
+	@echo "Running unittests for endpoint formatting..."
+	PYTHONPATH=$(shell pwd) uv run python tests/test_api_endpoints.py
 
 # Python environment
 	
