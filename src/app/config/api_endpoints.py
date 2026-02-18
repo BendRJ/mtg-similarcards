@@ -4,7 +4,7 @@ Module for API endpoint configurations
 
 from typing import Optional
 
-class APIEndpoints:
+class APIEndpointsConfig:
     """
     Storage class for API endpoint URLs
     """
@@ -30,7 +30,7 @@ class APIEndpoints:
         Returns:
             Complete URL for card endpoint
         """
-        url = APIEndpoints.CARDS_ENDPOINT
+        url = APIEndpointsConfig.CARDS_ENDPOINT
         
         # if card_id is provided it's a specific card lookup
         if card_id:
@@ -64,7 +64,7 @@ class APIEndpoints:
         Returns:
             Complete URL for set endpoint
         """
-        url = APIEndpoints.SETS_ENDPOINT
+        url = APIEndpointsConfig.SETS_ENDPOINT
         
         # if set_code is provided it's a specific set lookup
         if set_code:
