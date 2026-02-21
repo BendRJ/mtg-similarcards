@@ -15,6 +15,7 @@ class TestGetSets(unittest.TestCase):
         self.service = SetsRetrievalService()
 
     def test_returns_list_of_sets(self):
+        """Test that get_sets() returns a list of sets when the API response contains a 'sets' key."""
         mock_response = MagicMock()
         mock_response.json.return_value = {
             "sets": [{"code": "KTK", "name": "Khans of Tarkir"}]
@@ -27,6 +28,9 @@ class TestGetSets(unittest.TestCase):
         self.assertEqual(result[0]["code"], "KTK")
 
     def test_returns_empty_list_when_no_sets_key(self):
+        """
+        Test that get_sets() returns an empty list when the API response does not contain a 'sets' key.
+        """
         mock_response = MagicMock()
         mock_response.json.return_value = {}
 
@@ -36,6 +40,9 @@ class TestGetSets(unittest.TestCase):
         self.assertEqual(result, [])
 
     def test_raises_on_http_error(self):
+        """
+        Test that get_sets() raises an HTTPError when the API response indicates an error.
+        """
         mock_response = MagicMock()
         mock_response.raise_for_status.side_effect = requests.HTTPError("500")
 
@@ -51,6 +58,9 @@ class TestGetSet(unittest.TestCase):
         self.service = SetsRetrievalService()
 
     def test_returns_single_set(self):
+        """
+        Test that get_set() returns a single set when the API response contains a 'set' key.
+        """
         mock_response = MagicMock()
         mock_response.json.return_value = {
             "set": {"code": "KTK", "name": "Khans of Tarkir"}
@@ -63,6 +73,9 @@ class TestGetSet(unittest.TestCase):
         self.assertEqual(result["name"], "Khans of Tarkir")
 
     def test_raises_on_http_error(self):
+        """
+        Test that get_set() raises an HTTPError when the API response indicates an error.
+        """
         mock_response = MagicMock()
         mock_response.raise_for_status.side_effect = requests.HTTPError("404")
 

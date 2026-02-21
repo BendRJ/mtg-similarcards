@@ -17,7 +17,7 @@ class APIEndpointsConfig:
                      set_code: Optional[str] = None,
                      rarity: Optional[str] = None,
                      page: Optional[int] = None,
-                     pageSize: Optional[int] = None) -> str:
+                     page_size: Optional[int] = None) -> str:
         """
         Construct URL for specific card lookup
 
@@ -26,13 +26,13 @@ class APIEndpointsConfig:
             set_code: The set code to look up
             rarity: The rarity to look up
             page: The page number to look up
-            pageSize: The page size to look up
+            page_size: The page size to look up
         Returns:
             Complete URL for card endpoint
         """
         url = APIEndpointsConfig.CARDS_ENDPOINT
-        
-        # if card_id is provided it's a specific card lookup
+
+        # if card_id is provided its a specific card lookup
         if card_id:
             url = f"{url}/{card_id}"
         else:
@@ -44,13 +44,13 @@ class APIEndpointsConfig:
                 params.append(f"rarity={rarity}")
             if page is not None:
                 params.append(f"page={page}")
-            if pageSize is not None:
-                params.append(f"pageSize={pageSize}")
-            
+            if page_size is not None:
+                params.append(f"page_size={page_size}")
+
             # Append query string if any params exist
             if params:
                 url = f"{url}?{'&'.join(params)}"
-        
+
         return url
 
     @staticmethod
@@ -65,9 +65,9 @@ class APIEndpointsConfig:
             Complete URL for set endpoint
         """
         url = APIEndpointsConfig.SETS_ENDPOINT
-        
+
         # if set_code is provided it's a specific set lookup
         if set_code:
             url = f"{url}/{set_code}"
-        
+
         return url

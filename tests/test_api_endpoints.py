@@ -41,11 +41,11 @@ class TestAPIEndpoints(unittest.TestCase):
             set_code="KTK",
             rarity="mythic",
             page=3,
-            pageSize=50
+            page_size=50
         )
         self.assertEqual(
             url,
-            "https://api.magicthegathering.io/v1/cards?set=KTK&rarity=mythic&page=3&pageSize=50"
+            "https://api.magicthegathering.io/v1/cards?set=KTK&rarity=mythic&page=3&page_size=50"
         )
 
     def test_get_card_url_with_page_zero(self):

@@ -18,6 +18,7 @@ MAX_RETRIES = 3
 class SetsRetrievalService:
     """Retrieves MTG set data from the magicthegathering.io API."""
 
+    # calling the class instantiates a new session with retry strategy
     def __init__(self, timeout: int = DEFAULT_TIMEOUT):
         self.timeout = timeout
         self.session = self._build_session()
