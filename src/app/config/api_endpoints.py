@@ -18,7 +18,7 @@ class APIEndpointsConfig:
 
     DEFAULT_HEADERS = {
         "Accept": "application/json",
-        "User-Agent": "mtg_similarcards_v1.0",
+        "User-Agent": "mtg-similarcards-v1.0",
     }
 
     # Scryfall limits collection requests to 75 identifiers per call

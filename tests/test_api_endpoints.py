@@ -35,7 +35,7 @@ class TestAPIEndpoints(unittest.TestCase):
         """Test that default headers include a User-Agent."""
         headers = APIEndpointsConfig.DEFAULT_HEADERS
         self.assertIn("User-Agent", headers)
-        self.assertEqual(headers["User-Agent"], "similarcards-app-v1")
+        self.assertEqual(headers["User-Agent"], "mtg-similarcards-v1.0")
 
     def test_default_headers_contain_accept(self):
         """Test that default headers include Accept: application/json."""
