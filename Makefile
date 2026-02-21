@@ -20,6 +20,7 @@ help:
 	@echo ""
 	@echo "  Testing:"
 	@echo "    run-endpoint-tests  - Run unittests for endpoint formatting (sets PYTHONPATH)"
+	@echo "    run-all-tests       - Run all unit tests (sets PYTHONPATH)"
 	@echo ""
 	@echo "  Python Environment:"
 	@echo "    install             - Install project in editable mode"
@@ -71,8 +72,12 @@ run-endpoint-tests:
 	@echo "Running unittests for endpoint formatting..."
 	PYTHONPATH=$(shell pwd) uv run python tests/test_api_endpoints.py
 
+run-all-tests:
+	@echo "Running all unit tests..."
+	PYTHONPATH=$(shell pwd)/src uv run python -m unittest discover -s tests -v
+
 # Python environment
-	
+
 install:
 	@echo "Installing project in editable mode..."
 	pip install -e .

@@ -1,4 +1,4 @@
-"""Service for retrieving MTG set data from the API."""
+"""Service for retrieving MTG set data from the Scryfall API."""
 
 import logging
 from typing import Any
@@ -16,17 +16,20 @@ MAX_RETRIES = 3
 
 
 class SetsRetrievalService:
-    """Retrieves MTG set data from the magicthegathering.io API."""
+    """Retrieves MTG set data from the Scryfall API.
 
-    # calling the class instantiates a new session with retry strategy
+    Scryfall API reference: https://scryfall.com/docs/api/sets
+    """
+
     def __init__(self, timeout: int = DEFAULT_TIMEOUT):
         self.timeout = timeout
         self.session = self._build_session()
 
     @staticmethod
     def _build_session() -> requests.Session:
-        """Create a requests Session with retry strategy."""
+        """Create a requests Session with retry strategy and default headers."""
         session = requests.Session()
+        session.headers.update(APIEndpointsConfig.DEFAULT_HEADERS)
         retry = Retry(
             total=MAX_RETRIES,
             backoff_factor=1,
@@ -38,7 +41,9 @@ class SetsRetrievalService:
         return session
 
     def get_sets(self) -> list[dict[str, Any]]:
-        """Retrieve all sets from the API.
+        """Retrieve all sets from the Scryfall API.
+
+        Scryfall returns: {"object": "list", "has_more": false, "data": [...]}
 
         Returns:
             List of set dictionaries.
@@ -56,15 +61,18 @@ class SetsRetrievalService:
             logger.exception("Failed to fetch sets from %s", url)
             raise
 
-        sets = response.json().get("sets", [])
+        sets = response.json().get("data", [])
         logger.info("Retrieved %d sets", len(sets))
         return sets
 
     def get_set(self, set_code: str) -> dict[str, Any]:
         """Retrieve a single set by its code.
 
+        Scryfall returns the set object directly at the top level
+        (no wrapper key).
+
         Args:
-            set_code: The set code (e.g. 'KTK').
+            set_code: The set code (e.g. 'tdm').
 
         Returns:
             Set dictionary.
@@ -82,4 +90,4 @@ class SetsRetrievalService:
             logger.exception("Failed to fetch set '%s' from %s", set_code, url)
             raise
 
-        return response.json().get("set", {})
+        return response.json()

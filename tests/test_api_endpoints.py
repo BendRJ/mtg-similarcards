@@ -1,5 +1,5 @@
 """
-Unit tests for API endpoint configuration using unittest module
+Unit tests for Scryfall API endpoint configuration.
 """
 
 import unittest
@@ -7,72 +7,123 @@ from src.app.config.api_endpoints import APIEndpointsConfig
 
 
 class TestAPIEndpoints(unittest.TestCase):
-    """Test suite for APIEndpoints class using unittest"""
+    """Test suite for APIEndpointsConfig class."""
 
-    def test_base_urls(self):
-        """Test that base URLs are correctly configured"""
-        self.assertEqual(APIEndpointsConfig.BASE_URL, "https://api.magicthegathering.io/v1")
-        self.assertEqual(APIEndpointsConfig.CARDS_ENDPOINT, "https://api.magicthegathering.io/v1/cards")
-        self.assertEqual(APIEndpointsConfig.SETS_ENDPOINT, "https://api.magicthegathering.io/v1/sets")
+    # ------------------------------------------------------------------
+    # Base URL & constants
+    # ------------------------------------------------------------------
 
-    def test_get_card_url_no_params(self):
-        """Test card URL with no parameters"""
-        url = APIEndpointsConfig.get_card_url()
-        self.assertEqual(url, "https://api.magicthegathering.io/v1/cards")
+    def test_base_url(self):
+        """Test that the base URL points to Scryfall."""
+        self.assertEqual(APIEndpointsConfig.BASE_URL, "https://api.scryfall.com")
 
-    def test_get_card_url_with_card_id(self):
-        """Test card URL with specific card ID"""
-        url = APIEndpointsConfig.get_card_url(card_id="12345")
-        self.assertEqual(url, "https://api.magicthegathering.io/v1/cards/12345")
-
-    def test_get_card_url_with_single_query_param(self):
-        """Test card URL with single query parameter"""
-        url = APIEndpointsConfig.get_card_url(set_code="KTK")
-        self.assertEqual(url, "https://api.magicthegathering.io/v1/cards?set=KTK")
-
-    def test_get_card_url_with_multiple_query_params(self):
-        """Test card URL with multiple query parameters"""
-        url = APIEndpointsConfig.get_card_url(set_code="KTK", rarity="rare", page=2)
-        self.assertEqual(url, "https://api.magicthegathering.io/v1/cards?set=KTK&rarity=rare&page=2")
-
-    def test_get_card_url_with_all_query_params(self):
-        """Test card URL with all query parameters"""
-        url = APIEndpointsConfig.get_card_url(
-            set_code="KTK",
-            rarity="mythic",
-            page=3,
-            page_size=50
-        )
+    def test_sets_endpoint(self):
+        """Test that the sets endpoint is correctly configured."""
         self.assertEqual(
-            url,
-            "https://api.magicthegathering.io/v1/cards?set=KTK&rarity=mythic&page=3&page_size=50"
+            APIEndpointsConfig.SETS_ENDPOINT,
+            "https://api.scryfall.com/sets",
         )
 
-    def test_get_card_url_with_page_zero(self):
-        """Test that page=0 is included in query params"""
-        url = APIEndpointsConfig.get_card_url(page=0)
-        self.assertEqual(url, "https://api.magicthegathering.io/v1/cards?page=0")
+    def test_cards_collection_endpoint(self):
+        """Test that the cards collection endpoint is correctly configured."""
+        self.assertEqual(
+            APIEndpointsConfig.CARDS_COLLECTION_ENDPOINT,
+            "https://api.scryfall.com/cards/collection",
+        )
+
+    def test_default_headers_contain_user_agent(self):
+        """Test that default headers include a User-Agent."""
+        headers = APIEndpointsConfig.DEFAULT_HEADERS
+        self.assertIn("User-Agent", headers)
+        self.assertEqual(headers["User-Agent"], "similarcards-app-v1")
+
+    def test_default_headers_contain_accept(self):
+        """Test that default headers include Accept: application/json."""
+        headers = APIEndpointsConfig.DEFAULT_HEADERS
+        self.assertIn("Accept", headers)
+        self.assertEqual(headers["Accept"], "application/json")
+
+    def test_max_collection_batch_size(self):
+        """Test that the max batch size is 75 per Scryfall docs."""
+        self.assertEqual(APIEndpointsConfig.MAX_COLLECTION_BATCH_SIZE, 75)
+
+    # ------------------------------------------------------------------
+    # get_set_url
+    # ------------------------------------------------------------------
 
     def test_get_set_url_no_params(self):
-        """Test set URL with no parameters"""
+        """Test set URL with no parameters returns all-sets endpoint."""
         url = APIEndpointsConfig.get_set_url()
-        self.assertEqual(url, "https://api.magicthegathering.io/v1/sets")
+        self.assertEqual(url, "https://api.scryfall.com/sets")
 
     def test_get_set_url_with_set_code(self):
-        """Test set URL with specific set code"""
-        url = APIEndpointsConfig.get_set_url(set_code="KTK")
-        self.assertEqual(url, "https://api.magicthegathering.io/v1/sets/KTK")
-
-    def test_card_url_contains_base_url(self):
-        """Test that card URL contains the base URL"""
-        url = APIEndpointsConfig.get_card_url(card_id="123")
-        self.assertIn("magicthegathering.io", url)
+        """Test set URL with specific set code."""
+        url = APIEndpointsConfig.get_set_url(set_code="tdm")
+        self.assertEqual(url, "https://api.scryfall.com/sets/tdm")
 
     def test_set_url_is_string(self):
-        """Test that set URL returns a string"""
+        """Test that set URL returns a string."""
         url = APIEndpointsConfig.get_set_url()
         self.assertIsInstance(url, str)
 
+    def test_set_url_contains_base_url(self):
+        """Test that set URL contains the Scryfall base URL."""
+        url = APIEndpointsConfig.get_set_url(set_code="blb")
+        self.assertIn("api.scryfall.com", url)
 
-if __name__ == '__main__':
+    # ------------------------------------------------------------------
+    # get_cards_collection_url
+    # ------------------------------------------------------------------
+
+    def test_get_cards_collection_url(self):
+        """Test that the collection URL is returned correctly."""
+        url = APIEndpointsConfig.get_cards_collection_url()
+        self.assertEqual(url, "https://api.scryfall.com/cards/collection")
+
+    # ------------------------------------------------------------------
+    # build_collection_body
+    # ------------------------------------------------------------------
+
+    def test_build_collection_body_single_identifier(self):
+        """Test building a collection body with one identifier."""
+        identifiers = [{"set": "tdm", "collector_number": "1"}]
+        body = APIEndpointsConfig.build_collection_body(identifiers)
+        self.assertEqual(body, {"identifiers": identifiers})
+
+    def test_build_collection_body_multiple_identifiers(self):
+        """Test building a collection body with multiple identifiers."""
+        identifiers = [
+            {"set": "tdm", "collector_number": "1"},
+            {"set": "tdm", "collector_number": "2"},
+            {"set": "blb", "collector_number": "183"},
+        ]
+        body = APIEndpointsConfig.build_collection_body(identifiers)
+        self.assertEqual(body, {"identifiers": identifiers})
+        self.assertEqual(len(body["identifiers"]), 3)
+
+    def test_build_collection_body_empty_list(self):
+        """Test building a collection body with an empty list."""
+        body = APIEndpointsConfig.build_collection_body([])
+        self.assertEqual(body, {"identifiers": []})
+
+    def test_build_collection_body_exceeds_max_raises(self):
+        """Test that exceeding the max batch size raises ValueError."""
+        identifiers = [
+            {"set": "tdm", "collector_number": str(i)}
+            for i in range(76)
+        ]
+        with self.assertRaises(ValueError):
+            APIEndpointsConfig.build_collection_body(identifiers)
+
+    def test_build_collection_body_at_max_does_not_raise(self):
+        """Test that exactly 75 identifiers does not raise."""
+        identifiers = [
+            {"set": "tdm", "collector_number": str(i)}
+            for i in range(75)
+        ]
+        body = APIEndpointsConfig.build_collection_body(identifiers)
+        self.assertEqual(len(body["identifiers"]), 75)
+
+
+if __name__ == "__main__":
     unittest.main()
