@@ -1,5 +1,5 @@
 """
-Request manager for handling API requests.
+Session Manager for handling API requests.
 """
 
 import requests
@@ -17,6 +17,9 @@ class SessionManager:
 
     This class provides a configured requests.Session for making API calls
     with built-in retry logic.
+
+    returns:
+        A requests.Session object with retry strategy and default headers.
     """
 
     def __init__(self, timeout: int = DEFAULT_TIMEOUT):
