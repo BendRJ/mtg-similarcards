@@ -1,7 +1,7 @@
 """Unit tests for CardsRetrievalService (Scryfall API)."""
 
 import unittest
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import requests
 

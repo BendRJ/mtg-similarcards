@@ -25,7 +25,8 @@ def setup_logging(
         setup_logging(log_level=logging.DEBUG)
     """
     # Create root logger
-    root_logger = logging.getLogger() #other loggers will inherit this configuration when set up with logging.getLogger(__name__) in their respective modules
+    root_logger = logging.getLogger()
+    #other loggers will inherit this configuration when set up with logging.getLogger(__name__) in their respective modules
     root_logger.setLevel(log_level)
 
     # Remove any existing handlers to avoid duplicates

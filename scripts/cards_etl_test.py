@@ -2,7 +2,6 @@
 
 import logging
 from app.config.logging_config import setup_logging
-from database.etl.sets.sets_retrieval_svc import SetsRetrievalService
 from database.etl.cards.cards_retrieval_svc import CardsRetrievalService
 
 setup_logging(log_level=logging.DEBUG)
