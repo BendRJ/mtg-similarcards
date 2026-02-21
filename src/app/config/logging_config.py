@@ -6,26 +6,27 @@ from pathlib import Path
 
 
 def setup_logging(
-    log_level: int = logging.INFO,
+    log_level: int = logging.INFO, #means "show INFO and above" per default
     log_file: str = "app.log",
     log_to_console: bool = True,
     log_to_file: bool = True
 ) -> None:
     """
     Configure application-wide logging.
-    
+
     Args:
         log_level: The logging level (e.g., logging.INFO, logging.DEBUG)
         log_file: Path to the log file
         log_to_console: Whether to output logs to console
         log_to_file: Whether to output logs to file
-    
+
     Example:
         from src.app.config.logging_config import setup_logging
         setup_logging(log_level=logging.DEBUG)
     """
     # Create root logger
     root_logger = logging.getLogger()
+    #other loggers will inherit this configuration when set up with logging.getLogger(__name__) in their respective modules
     root_logger.setLevel(log_level)
 
     # Remove any existing handlers to avoid duplicates
@@ -33,7 +34,7 @@ def setup_logging(
 
     # Define log format
     formatter = logging.Formatter(
-        fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        fmt='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 

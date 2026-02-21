@@ -1,9 +1,19 @@
 {
-	"set": {
-		"code": "BLB",
-		"name": "Bloomburrow",
-		"type": "expansion",
-		"releaseDate": "2024-08-02",
-		"onlineOnly": false
-	}
+	"object": "set",
+	"id": "1361ca81-1304-49a8-b2e6-e76a4aa4a8c3",
+	"code": "tdm",
+	"mtgo_code": "tdm",
+	"arena_code": "tdm",
+	"tcgplayer_id": 24232,
+	"name": "Tarkir: Dragonstorm",
+	"uri": "https://api.scryfall.com/sets/1361ca81-1304-49a8-b2e6-e76a4aa4a8c3",
+	"scryfall_uri": "https://scryfall.com/sets/tdm",
+	"search_uri": "https://api.scryfall.com/cards/search?include_extras=true&include_variations=true&order=set&q=e%3Atdm&unique=prints",
+	"released_at": "2025-04-11",
+	"set_type": "expansion",
+	"card_count": 427,
+	"digital": false,
+	"nonfoil_only": false,
+	"foil_only": false,
+	"icon_svg_uri": "https://svgs.scryfall.io/sets/tdm.svg?1771218000"
 }
