@@ -16,9 +16,9 @@ class APIEndpointsConfig:
     SETS_ENDPOINT = f"{BASE_URL}/sets"
     CARDS_COLLECTION_ENDPOINT = f"{BASE_URL}/cards/collection"
 
-    DEFAULT_HEADERS = {
+    DEFAULT_HEADERS = { #see api docs
         "Accept": "application/json",
-        "User-Agent": "mtg-similarcards-v1.0",
+        "User-Agent": "mtg-similarcards-v0.1",
     }
 
     # Scryfall limits collection requests to 75 identifiers per call
