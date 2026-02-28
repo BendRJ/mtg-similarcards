@@ -1,7 +1,7 @@
 [MASTER]
 # Add the project root to the Python path
 init-hook='import sys; sys.path.append(".")'
-ignore-paths=test/*
+ignore-paths=tests/*
 
 [TYPECHECK]
 # Ignore missing member errors for psycopg types
