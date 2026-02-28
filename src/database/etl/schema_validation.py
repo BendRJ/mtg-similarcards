@@ -5,11 +5,14 @@ from pydantic import BaseModel
 
 
 class SetsValidation(BaseModel):
+    """
+    Validation of API response for sets endpoint.
+    """
     # from create table statement
     # code TEXT PRIMARY KEY,
     # name TEXT NOT NULL,
     # set_type TEXT,
-    # released_at DATE,
+    # released_at TEXT,
     # card_count INTEGER,
     # digital BOOLEAN NOT NULL DEFAULT FALSE,
     # foil_only BOOLEAN NOT NULL DEFAULT FALSE,
@@ -23,7 +26,7 @@ class SetsValidation(BaseModel):
     search_uri: str
     digital: bool
     foil_only: bool = False
-    nonfoil_only: bool
+    nonfoil_only: bool = False
     icon_svg_uri: str
 
     model_config = {
@@ -32,4 +35,7 @@ class SetsValidation(BaseModel):
 
 
 class CardsValidation(BaseModel):
+    """
+    Validation of API response for cards endpoint.
+    """
     pass
