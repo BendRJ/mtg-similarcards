@@ -38,4 +38,4 @@ class CardsValidation(BaseModel):
     """
     Validation of API response for cards endpoint.
     """
-    pass
+
