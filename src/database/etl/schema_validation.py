@@ -3,7 +3,6 @@ Pydantic schema validation of API responses.
 """
 from pydantic import BaseModel
 
-
 class SetsValidation(BaseModel):
     """
     Validation of API response for sets endpoint.
@@ -33,9 +32,7 @@ class SetsValidation(BaseModel):
         "extra": "ignore"  # Ignore all other fields in response body not specified above
     }
 
-
 class CardsValidation(BaseModel):
     """
     Validation of API response for cards endpoint.
     """
-
