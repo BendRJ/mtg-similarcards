@@ -2,7 +2,8 @@
 Example upsert for the sets table using Tarkir: Dragonstorm data.
 """
 from pathlib import Path
-from typing import cast, LiteralString
+from typing import LiteralString, cast
+
 from database.db import get_cursor
 
 # Load SQL statement from file

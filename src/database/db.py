@@ -56,10 +56,10 @@ Summary:
     get_connection()    ← Use only when you need manual control
 """
 
+import logging
 import os
 from contextlib import contextmanager
 from typing import Generator
-import logging
 
 import psycopg
 from dotenv import load_dotenv

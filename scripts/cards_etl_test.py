@@ -1,6 +1,7 @@
 """Quick smoke test for Scryfall cards retrieval services."""
 
 import logging
+
 from app.config.logging_config import setup_logging
 from database.etl.cards.cards_retrieval_svc import CardsRetrievalService
 

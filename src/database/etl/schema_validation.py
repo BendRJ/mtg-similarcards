@@ -3,6 +3,7 @@ Pydantic schema validation of API responses.
 """
 from pydantic import BaseModel
 
+
 class SetsValidation(BaseModel):
     """
     Validation of API response for sets endpoint.

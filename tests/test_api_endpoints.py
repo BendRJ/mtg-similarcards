@@ -3,6 +3,7 @@ Unit tests for Scryfall API endpoint configuration.
 """
 
 import unittest
+
 from src.app.config.api_endpoints import APIEndpointsConfig
 
 

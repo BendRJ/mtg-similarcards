@@ -1,9 +1,10 @@
 """Quick smoke test for Scryfall sets and cards retrieval services."""
 
 import logging
+
 from app.config.logging_config import setup_logging
-from database.etl.sets.sets_retrieval_svc import SetsRetrievalService
 from database.etl.schema_validation import SetsValidation
+from database.etl.sets.sets_retrieval_svc import SetsRetrievalService
 
 setup_logging(log_level=logging.DEBUG)
 
