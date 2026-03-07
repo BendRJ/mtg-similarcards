@@ -3,8 +3,8 @@ Main module for mtg-similarcards application
 """
 import logging
 import psycopg
-from src.database.db import test_connection, get_cursor
-from src.app.config.logging_config import setup_logging
+from database.db import test_connection, get_cursor
+from app.config.logging_config import setup_logging
 
 logger = logging.getLogger(__name__)
 
