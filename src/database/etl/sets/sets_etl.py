@@ -11,9 +11,8 @@ from database.etl.sets.sets_retrieval_svc import SetsRetrievalService
 
 setup_logging(log_level=logging.INFO)
 
-# Load SQL statement from file
 SQL_FILE = Path(__file__).parents[2] / "sql" / "upsert" / "sets_upsert.sql"
-logging.info(SQL_FILE)
+logging.info(f"Reading SQL file: {SQL_FILE}")
 SETS_UPSERT_SQL = cast(LiteralString, SQL_FILE.read_text())
 
 sets_svc = SetsRetrievalService()
