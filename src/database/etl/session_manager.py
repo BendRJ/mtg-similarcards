@@ -5,6 +5,7 @@ Session Manager for handling API requests.
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
 from app.config.api_endpoints import APIEndpointsConfig
 
 DEFAULT_TIMEOUT = 30  # sec
