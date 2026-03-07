@@ -23,6 +23,9 @@ logging.info(f"  set_type: {df['set_type']}")
 logging.info(f"  released_at: {df['released_at']}")
 logging.info(f"  digital: {df['digital']}")
 
-loaded_df = SetsValidation.model_validate(df)
-cleaned_df = loaded_df.model_dump()
-logging.info(f"After pydantic validation: {cleaned_df}")
+try:
+    loaded_df = SetsValidation.model_validate(df) #only validates
+    cleaned_df = loaded_df.model_dump() #model_config with extra="ignore" will drop any fields not defined in the model here!
+    logging.info(f"After pydantic validation: {cleaned_df}")
+except Exception as e:
+    logging.error(f"Validation failed: {e}")
