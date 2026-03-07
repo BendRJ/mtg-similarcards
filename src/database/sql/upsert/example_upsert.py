@@ -1,69 +1,37 @@
 """
-Docstring for database.sql.upsert.example_upsert
+Example upsert for the sets table using Tarkir: Dragonstorm data.
 """
 from pathlib import Path
 from typing import cast, LiteralString
-from src.database.db import get_cursor
+from database.db import get_cursor
 
 # Load SQL statement from file
-SQL_FILE = Path(__file__).parent / "cards_upsert.sql"
-CARDS_UPSERT_SQL = cast(LiteralString, SQL_FILE.read_text())
+SQL_FILE = Path(__file__).parent / "sets_upsert.sql"
+SETS_UPSERT_SQL = cast(LiteralString, SQL_FILE.read_text())
 
-# Card identification
-CARD_ID = "2c6d7ee7-b635-584f-b96f-59979998134f"
-CARD_NAME = "Lumra, Bellow of the Woods"
+# Set identification
+SET_CODE = "tdm"
+SET_NAME = "Tarkir: Dragonstorm"
 
-# Card properties
-MANA_COST = "{4}{G}{G}"
-CMC = 6.0
-COLORS = ["G"]
-COLOR_IDENTITY = ["G"]
-
-# Card type information
-CARD_TYPE = "Legendary Creature — Elemental Bear"
-SUPERTYPES = ["Legendary"]
-TYPES = ["Creature"]
-SUBTYPES = ["Elemental", "Bear"]
-
-# Card metadata
-RARITY = "Mythic"
-SET_CODE = "BLB"
-SET_NAME = "Bloomburrow"
-TEXT = "Vigilance, reach\n..."
-ARTIST = "Matt Stewart"
-NUMBER = "183"
-
-# Card stats
-POWER = "*"
-TOUGHNESS = "*"
-
-# Card layout and variations
-LAYOUT = "normal"
-VARIATIONS = ["f4816114...", "7d95bac2..."]
-PRINTINGS = ["BLB"]
+# Set properties
+SET_TYPE = "expansion"
+RELEASED_AT = "2025-04-11"
+CARD_COUNT = 427
+DIGITAL = False
+FOIL_ONLY = False
+NONFOIL_ONLY = False
+ICON_SVG_URI = "https://svgs.scryfall.io/sets/tdm.svg?1771218000"
 
 with get_cursor() as cur:
-    cur.execute(CARDS_UPSERT_SQL, (
-        CARD_ID,
-        CARD_NAME,
-        MANA_COST,
-        CMC,
-        COLORS,
-        COLOR_IDENTITY,
-        CARD_TYPE,
-        SUPERTYPES,
-        TYPES,
-        SUBTYPES,
-        RARITY,
+    cur.execute(SETS_UPSERT_SQL, (
         SET_CODE,
         SET_NAME,
-        TEXT,
-        ARTIST,
-        NUMBER,
-        POWER,
-        TOUGHNESS,
-        LAYOUT,
-        VARIATIONS,
-        PRINTINGS
+        SET_TYPE,
+        RELEASED_AT,
+        CARD_COUNT,
+        DIGITAL,
+        FOIL_ONLY,
+        NONFOIL_ONLY,
+        ICON_SVG_URI
     ))
-    print(f"Inserted/Updated card {CARD_NAME}")
+    print(f"Inserted/Updated set {SET_NAME} ({SET_CODE})")
