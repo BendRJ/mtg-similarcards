@@ -7,14 +7,10 @@ from database.etl.schema_validation import SetsValidation
 
 setup_logging(log_level=logging.DEBUG)
 
-# ── Sets ─────────────────────────────────────────────────────────────
 sets_svc = SetsRetrievalService()
 
 # test get_sets (all sets)
 sets = sets_svc.get_sets()
-# logging.info(f"Got {len(sets)} sets")
-# logging.info(f"First set: {sets[0]['name']}")
-# logging.info(f"Full payload: {sets[0]}")
 
 # test get_set (single set)
 df = sets_svc.get_set("tdm")
