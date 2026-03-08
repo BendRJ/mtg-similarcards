@@ -76,7 +76,7 @@ class CardsValidation(BaseModel):
     finishes: list[str] | None = None
 
     # Set Info
-    set_code: str | None = Field(default=None, validation_alias="set") #api returns set code as "set", but we want to use set_code as col name
+    set_code: str | None = Field(default=None, validation_alias="set") #api returns set code as "set" but we want set_code as col name
     set_name: str | None = None
     set_type: str | None = None
     collector_number: str | None = None
