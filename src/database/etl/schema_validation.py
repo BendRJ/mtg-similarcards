@@ -7,17 +7,9 @@ from pydantic import BaseModel
 class SetsValidation(BaseModel):
     """
     Validation of API response for sets endpoint.
+    Should match the columns defined in sets.sql and the fields in the upsert query.
+    Any fields in the API response not defined here will be ignored due to model_config.
     """
-    # from create table statement
-    # code TEXT PRIMARY KEY,
-    # name TEXT NOT NULL,
-    # set_type TEXT,
-    # released_at TEXT,
-    # card_count INTEGER,
-    # digital BOOLEAN NOT NULL DEFAULT FALSE,
-    # foil_only BOOLEAN NOT NULL DEFAULT FALSE,
-    # nonfoil_only BOOLEAN NOT NULL DEFAULT FALSE,
-    # icon_svg_uri TEXT
     code: str
     name: str
     set_type: str
