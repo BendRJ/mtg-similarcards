@@ -1,9 +1,10 @@
-INSERT INTO sets (
+INSERT INTO sets ( --doesnt have to match the order of columns in the table, but it has to match the order of values
     code,
     name,
     set_type,
     released_at,
     card_count,
+    search_uri,
     digital,
     foil_only,
     nonfoil_only,
@@ -14,6 +15,7 @@ INSERT INTO sets (
     %s,  -- set_type
     %s,  -- released_at
     %s,  -- card_count
+    %s,  -- search_uri
     %s,  -- digital
     %s,  -- foil_only
     %s,  -- nonfoil_only
@@ -24,6 +26,7 @@ ON CONFLICT (code) DO UPDATE SET
     set_type = EXCLUDED.set_type,
     released_at = EXCLUDED.released_at,
     card_count = EXCLUDED.card_count,
+    search_uri = EXCLUDED.search_uri,
     digital = EXCLUDED.digital,
     foil_only = EXCLUDED.foil_only,
     nonfoil_only = EXCLUDED.nonfoil_only,
