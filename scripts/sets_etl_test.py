@@ -1,11 +1,11 @@
 """Quick smoke test for Scryfall sets and cards retrieval services."""
 
 import logging
+from pydantic import ValidationError
 
 from app.config.logging_config import setup_logging
 from database.etl.schema_validation import SetsValidation
 from database.etl.sets.sets_retrieval_svc import SetsRetrievalService
-from pydantic import ValidationError
 
 setup_logging(log_level=logging.DEBUG)
 
@@ -26,4 +26,3 @@ try:
     logging.info(f"After pydantic validation: {cleaned_dict.keys()}")
 except ValidationError as e:
     logging.error(f"Validation failed: {e}")
-

@@ -44,33 +44,33 @@ def run_sets_etl() -> list[dict]:
         logging.info(f"After pydantic validation: {len(cleaned_dict.keys())} fields")
 
         # Set identification
-        SET_CODE = cleaned_dict["code"]
-        SET_NAME = cleaned_dict["name"]
+        set_code = cleaned_dict["code"]
+        set_name = cleaned_dict["name"]
 
         # Set properties
-        SET_TYPE = cleaned_dict["set_type"]
-        RELEASED_AT = cleaned_dict["released_at"]
-        CARD_COUNT = cleaned_dict["card_count"]
-        SEARCH_URI = cleaned_dict["search_uri"]
-        DIGITAL = cleaned_dict["digital"]
-        FOIL_ONLY = cleaned_dict["foil_only"]
-        NONFOIL_ONLY = cleaned_dict["nonfoil_only"]
-        ICON_SVG_URI = cleaned_dict["icon_svg_uri"]
+        set_type = cleaned_dict["set_type"]
+        released_at = cleaned_dict["released_at"]
+        card_count = cleaned_dict["card_count"]
+        search_uri = cleaned_dict["search_uri"]
+        digital = cleaned_dict["digital"]
+        foil_only = cleaned_dict["foil_only"]
+        nonfoil_only = cleaned_dict["nonfoil_only"]
+        icon_svg_uri = cleaned_dict["icon_svg_uri"]
 
         with get_cursor() as cur:
             cur.execute(SETS_UPSERT_SQL, (
-                SET_CODE,
-                SET_NAME,
-                SET_TYPE,
-                RELEASED_AT,
-                CARD_COUNT,
-                SEARCH_URI,
-                DIGITAL,
-                FOIL_ONLY,
-                NONFOIL_ONLY,
-                ICON_SVG_URI
+                set_code,
+                set_name,
+                set_type,
+                released_at,
+                card_count,
+                search_uri,
+                digital,
+                foil_only,
+                nonfoil_only,
+                icon_svg_uri
             ))
-            logging.info(f"Inserted/Updated set: {SET_NAME} ({SET_CODE})")
+            logging.info(f"Inserted/Updated set: {set_name} ({set_code})")
 
     if failed_sets:
         logging.warning(
