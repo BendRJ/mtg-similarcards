@@ -2,9 +2,9 @@
 Main module for mtg-similarcards application
 """
 import logging
+from typing import Optional
 
 import psycopg
-from typing import Optional
 
 from app.config.logging_config import setup_logging
 from database.db import get_cursor, test_connection
@@ -32,7 +32,7 @@ def main(insert_sets: Optional[bool]):
                 cur.execute("SELECT COUNT(*) FROM sets")
                 result = cur.fetchone()
                 if result and insert_sets: #sets table gets created on app boot, so should always exist
-                    logging.info(f"✓ Sets table exists!")
+                    logging.info("✓ Sets table exists! Full insert was chosen!")
                     _failed_inserts = run_sets_etl()
                 elif result and result[0] > 0:
                     count = result[0]
