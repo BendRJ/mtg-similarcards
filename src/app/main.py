@@ -12,7 +12,7 @@ from database.etl.sets.sets_etl import run_sets_etl
 
 logger = logging.getLogger(__name__)
 
-def main(insert_sets: Optional[bool]):
+def main(insert_sets: bool | None = None) -> Optional[list[dict]]: # returns list of failed inserts if insert_sets is True, otherwise None
     """
     Main entry point for the application
     """
@@ -50,4 +50,4 @@ def main(insert_sets: Optional[bool]):
 
 
 if __name__ == "__main__":
-    main(insert_sets=None)
+    main()

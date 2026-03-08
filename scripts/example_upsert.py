@@ -7,7 +7,7 @@ from typing import LiteralString, cast
 from database.db import get_cursor
 
 # Load SQL statement from file
-SQL_FILE = Path(__file__).parent / "sets_upsert.sql"
+SQL_FILE = Path(__file__).parent.parent / "src" / "database" / "sql" / "upsert" / "sets_upsert.sql"
 SETS_UPSERT_SQL = cast(LiteralString, SQL_FILE.read_text())
 
 # Set identification
@@ -18,6 +18,7 @@ SET_NAME = "Tarkir: Dragonstorm"
 SET_TYPE = "expansion"
 RELEASED_AT = "2025-04-11"
 CARD_COUNT = 427
+SEARCH_URI = "https://api.scryfall.com/cards/search?order=set&q=e%3Atdm&unique=prints"
 DIGITAL = False
 FOIL_ONLY = False
 NONFOIL_ONLY = False
@@ -30,6 +31,7 @@ with get_cursor() as cur:
         SET_TYPE,
         RELEASED_AT,
         CARD_COUNT,
+        SEARCH_URI,
         DIGITAL,
         FOIL_ONLY,
         NONFOIL_ONLY,

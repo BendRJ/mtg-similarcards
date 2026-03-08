@@ -63,7 +63,6 @@ class TestSetsSchemaAlignment(unittest.TestCase):
         )
 
 
-@unittest.skip("CardsValidation model not yet implemented — add fields to enable this test")
 class TestCardsSchemaAlignment(unittest.TestCase):
     """Verify CardsValidation Pydantic fields match cards.sql columns."""
 
