@@ -29,15 +29,15 @@ def run_sets_etl() -> list[dict]:
     sets = sets_svc.get_sets()
     failed_sets: list[dict] = []
 
-    for set in sets:
-        logging.info(f"Processing set: {set['name']} ({set['code']})")
-        logging.info(f"Raw API response for set: {len(set.keys())} fields")
+    for mtg_set in sets:
+        logging.info(f"Processing set: {mtg_set['name']} ({mtg_set['code']})")
+        logging.info(f"Raw API response for set: {len(mtg_set.keys())} fields")
 
         try:
-            loaded_dict = SetsValidation.model_validate(set)
+            loaded_dict = SetsValidation.model_validate(mtg_set)
         except ValidationError as e:
-            logging.error(f"Validation failed for set {set.get('code', 'UNKNOWN')}: {e}")
-            failed_sets.append(set)
+            logging.error(f"Validation failed for set {mtg_set.get('code', 'UNKNOWN')}: {e}")
+            failed_sets.append(mtg_set)
             continue
 
         cleaned_dict = loaded_dict.model_dump()
