@@ -4,6 +4,8 @@ Supports two retrieval strategies:
 - Collection lookup: POST /cards/collection with specific identifiers
   (set + collector_number). Scryfall limits to 75 identifiers per request;
   this service handles automatic batching.
+- Set search: GET via a set's ``search_uri``. Scryfall returns up to 175
+  cards per page; this service follows ``next_page`` links automatically.
 """
 
 import logging
@@ -128,3 +130,54 @@ class CardsRetrievalService(SessionManager):
             len(not_found),
         )
         return cards, not_found
+
+
+    def get_cards_by_set(self, search_uri: str) -> list[dict[str, Any]]:
+        """Retrieve all cards for a set via its paginated search URI.
+
+        Scryfall's search endpoint returns up to 175 cards per page.
+        This method follows ``next_page`` links until all pages are
+        consumed.
+
+        Args:
+            search_uri: The ``search_uri`` from a Scryfall set object
+                        (e.g. from the sets API response).
+
+        Returns:
+            List of card dictionaries.
+
+        Raises:
+            requests.RequestException: If any page request fails after retries.
+        """
+        all_cards: list[dict[str, Any]] = []
+        url: str | None = search_uri
+        page = 0
+
+        while url:
+            page += 1
+            if page > 1:
+                time.sleep(RATE_LIMIT_DELAY_SECONDS)
+
+            logger.info("Page %d: fetching cards from %s", page, url)
+
+            try:
+                response = self.session.get(url, timeout=self.timeout)
+                response.raise_for_status()
+            except requests.RequestException:
+                logger.exception(
+                    "Page %d: failed to fetch cards from %s", page, url
+                )
+                raise
+
+            data = response.json()
+            cards = data.get("data", [])
+            all_cards.extend(cards) #extend to not nest the list of dict further but just keep appending dicts on same list level
+
+            logger.info("Page %d: retrieved %d cards", page, len(cards))
+
+            url = data.get("next_page") if data.get("has_more") else None
+
+        logger.info(
+            "Retrieved %d cards total across %d page(s)", len(all_cards), page
+        )
+        return all_cards

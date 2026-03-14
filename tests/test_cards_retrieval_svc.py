@@ -134,5 +134,98 @@ class TestGetCardsCollection(unittest.TestCase):
         self.assertIn("Accept", headers)
 
 
+class TestGetCardsBySet(unittest.TestCase):
+    """Tests for CardsRetrievalService.get_cards_by_set()."""
+
+    SEARCH_URI = (
+        "https://api.scryfall.com/cards/search"
+        "?include_extras=true&include_variations=true&order=set&q=e%3Atdm&unique=prints"
+    )
+
+    def setUp(self):
+        self.service = CardsRetrievalService()
+
+    def test_returns_all_cards_single_page(self):
+        """get_cards_by_set() returns all cards when response fits in one page."""
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "object": "list",
+            "total_cards": 2,
+            "has_more": False,
+            "data": [
+                {"id": "1", "name": "Card A", "set": "tdm"},
+                {"id": "2", "name": "Card B", "set": "tdm"},
+            ],
+        }
+
+        with patch.object(self.service.session, "get", return_value=mock_response):
+            result = self.service.get_cards_by_set(self.SEARCH_URI)
+
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["name"], "Card A")
+        self.assertEqual(result[1]["name"], "Card B")
+
+    @patch("database.etl.cards.cards_retrieval_svc.time.sleep")
+    def test_follows_pagination(self, mock_sleep):
+        """get_cards_by_set() follows next_page links across multiple pages."""
+        page1_response = MagicMock()
+        page1_response.json.return_value = {
+            "object": "list",
+            "total_cards": 3,
+            "has_more": True,
+            "next_page": "https://api.scryfall.com/cards/search?page=2",
+            "data": [
+                {"id": "1", "name": "Card A"},
+                {"id": "2", "name": "Card B"},
+            ],
+        }
+
+        page2_response = MagicMock()
+        page2_response.json.return_value = {
+            "object": "list",
+            "total_cards": 3,
+            "has_more": False,
+            "data": [
+                {"id": "3", "name": "Card C"},
+            ],
+        }
+
+        with patch.object(
+            self.service.session,
+            "get",
+            side_effect=[page1_response, page2_response],
+        ):
+            result = self.service.get_cards_by_set(self.SEARCH_URI)
+
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[2]["name"], "Card C")
+        # Rate-limit sleep should be called once (before page 2)
+        mock_sleep.assert_called_once()
+
+    def test_raises_on_http_error(self):
+        """get_cards_by_set() raises RequestException on a failed response."""
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = requests.HTTPError("500")
+
+        with patch.object(self.service.session, "get", return_value=mock_response):
+            with self.assertRaises(requests.HTTPError):
+                self.service.get_cards_by_set(self.SEARCH_URI)
+
+    def test_returns_empty_list_when_no_cards(self):
+        """get_cards_by_set() returns [] when the search yields no results."""
+        mock_response = MagicMock()
+        mock_response.json.return_value = {
+            "object": "list",
+            "total_cards": 0,
+            "has_more": False,
+            "data": [],
+        }
+
+        with patch.object(self.service.session, "get", return_value=mock_response):
+            result = self.service.get_cards_by_set(self.SEARCH_URI)
+
+        self.assertEqual(result, [])
+
+
 if __name__ == "__main__":
     unittest.main()
