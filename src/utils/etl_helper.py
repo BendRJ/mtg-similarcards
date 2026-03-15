@@ -1,12 +1,11 @@
-"""doc"""
+"""Helper util functions for ETL"""
 
 import logging
 
 from app.config.logging_config import setup_logging
-from database.etl.schema_validation import SetsValidation
 from database.etl.sets.sets_retrieval_svc import SetsRetrievalService
 
-setup_logging(log_level=logging.DEBUG)
+setup_logging(log_level=logging.INFO)
 
 
 def get_search_uri_by_set(set_code: str) -> str | None:
