@@ -1,6 +1,7 @@
 """Sets ETL docstring"""
 
 import logging
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import LiteralString, cast
 
@@ -18,7 +19,14 @@ logging.info(f"Reading SQL file: {SQL_FILE}")
 SETS_UPSERT_SQL = cast(LiteralString, SQL_FILE.read_text())
 
 
-def run_sets_etl() -> list[dict]:
+@dataclass
+class SetsETLResult:
+    """Result of the sets ETL process."""
+    failed_sets: list[dict] = field(default_factory=list)
+    all_set_codes: list[str] = field(default_factory=list)
+
+
+def run_sets_etl() -> SetsETLResult:
     """Run sets ETL. Returns list of sets that failed schema validation."""
     # TODO: we could also add a retry mechanism for failed sets here, but for now we just log them and return them for manual reprocessing
     # TODO: handle schema evolution on the database side, e.g. if we add a new field from the API response to the pydantic model, we need to add it to the database table and the upsert SQL statement as well.
@@ -27,6 +35,7 @@ def run_sets_etl() -> list[dict]:
     # this is ok for now cause we have unit tests that will catch any mismatches between the pydantic model and the database schema
     sets_svc = SetsRetrievalService()
     sets = sets_svc.get_sets()
+    all_set_codes = [s["code"] for s in sets if "code" in s]
     failed_sets: list[dict] = []
 
     for mtg_set in sets:
@@ -78,10 +87,10 @@ def run_sets_etl() -> list[dict]:
             f"{[s.get('code', 'UNKNOWN') for s in failed_sets]}"
         )
 
-    return failed_sets
+    return SetsETLResult(failed_sets=failed_sets, all_set_codes=all_set_codes)
 
 
 if __name__ == "__main__":
-    failed = run_sets_etl()
-    if failed:
-        logging.warning(f"{len(failed)} sets require reprocessing")
+    result = run_sets_etl()
+    if result.failed_sets:
+        logging.warning(f"{len(result.failed_sets)} sets require reprocessing")

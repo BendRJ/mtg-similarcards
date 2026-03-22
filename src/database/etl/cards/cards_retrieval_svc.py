@@ -135,7 +135,8 @@ class CardsRetrievalService(SessionManager):
     def get_cards_by_set(self, search_uri: str) -> list[dict[str, Any]]:
         """Retrieve all cards for a set via its paginated search URI.
 
-        Scryfall's search endpoint returns up to 175 cards per page.
+        Scryfall returns: {"object": "list", "total_cards": 408, "has_more": true, "next_page": <url>, "data": [...]}
+        with up to 175 cards per page.
         This method follows ``next_page`` links until all pages are
         consumed.
 
