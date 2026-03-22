@@ -4,9 +4,9 @@ import logging
 from dataclasses import dataclass, field
 
 from app.config.logging_config import setup_logging
-from database.db import get_cursor
 from database.etl.cards.cards_etl import run_cards_etl
 from database.etl.sets.sets_etl import run_sets_etl
+from src.utils.etl_helper import _set_has_cards
 
 setup_logging(log_level=logging.INFO)
 
@@ -19,14 +19,6 @@ class PipelineResult:
     skipped_sets: list[str] = field(default_factory=list)
     errored_sets: list[str] = field(default_factory=list)
     sets_processed: int = 0
-
-
-def _set_has_cards(set_code: str) -> bool:
-    """Check whether the cards table already contains rows for a given set."""
-    with get_cursor() as cur:
-        cur.execute("SELECT EXISTS(SELECT 1 FROM cards WHERE set_code = %s)", (set_code,))
-        row = cur.fetchone()
-        return bool(row and row[0])
 
 
 class DataPipeline:
