@@ -1,6 +1,7 @@
 """Data pipeline module to orchestrate the ETL process for all data sources."""
 
 import logging
+import time
 from dataclasses import dataclass, field
 
 from app.config.logging_config import setup_logging
@@ -11,7 +12,7 @@ from src.utils.etl_helper import _set_has_cards
 setup_logging(log_level=logging.INFO)
 
 
-@dataclass
+@dataclass # decorator to automatically generate init, repr, etc. for the PipelineResult class
 class PipelineResult:
     """Summary of a pipeline run."""
     failed_sets: list[dict] = field(default_factory=list)
@@ -37,7 +38,7 @@ class DataPipeline:
                        If provided, skips sets ETL and runs cards ETL for given codes only.
             force: When True, reload cards even if the set already exists in the cards table.
         """
-        result = PipelineResult()
+        result = PipelineResult() #intantiate result object to track pipeline outcomes
 
         # Step 1: Sets ETL (unless specific set_codes were provided)
         if set_codes is None:
@@ -52,6 +53,7 @@ class DataPipeline:
 
         # Step 2: Cards ETL for each set
         logging.info("Running cards ETL for %d sets...", len(set_codes))
+        start_time = time.monotonic()
         for code in set_codes:
             if not force and _set_has_cards(code):
                 logging.info("Skipping set '%s' — cards already loaded.", code)
@@ -83,6 +85,12 @@ class DataPipeline:
             len(result.skipped_sets),
             len(result.errored_sets),
         )
+        if result.errored_sets:
+            logging.error("Errored sets: %s", result.errored_sets)
+
+        elapsed = time.monotonic() - start_time
+        minutes, seconds = divmod(elapsed, 60)
+        logging.info("Total time processed: %dm %.1fs", int(minutes), seconds)
 
         return result
 
