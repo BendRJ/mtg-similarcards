@@ -4,6 +4,9 @@ import logging
 import time
 from dataclasses import dataclass, field
 
+import psycopg
+import requests
+
 from app.config.logging_config import setup_logging
 from database.etl.cards.cards_etl import run_cards_etl
 from database.etl.sets.sets_etl import run_sets_etl
@@ -62,7 +65,7 @@ class DataPipeline:
 
             try:
                 failed_cards = run_cards_etl(code)
-            except Exception:
+            except (requests.RequestException, psycopg.Error, ValueError):
                 logging.exception("Cards ETL failed for set '%s'", code)
                 result.errored_sets.append(code)
                 continue

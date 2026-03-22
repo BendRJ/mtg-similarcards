@@ -30,4 +30,3 @@ def _set_has_cards(set_code: str) -> bool:
         cur.execute("SELECT EXISTS(SELECT 1 FROM cards WHERE set_code = %s)", (set_code,))
         row = cur.fetchone()
         return bool(row and row[0])
-
