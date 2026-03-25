@@ -76,5 +76,8 @@ CREATE TABLE IF NOT EXISTS cards (
     penny_rank INTEGER,
 
     -- Pricing
-    prices JSONB
+    prices JSONB,
+
+    -- Vector Embedding (384 dimensions, sentence-transformers/all-MiniLM-L6-v2)
+    embedding vector(384)
 );
