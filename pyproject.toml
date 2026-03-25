@@ -19,4 +19,5 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "pywho>=0.3.3",
     "requests>=2.32.5",
+    "sentence-transformers>=3.0.0",
 ]
