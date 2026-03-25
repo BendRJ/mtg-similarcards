@@ -1,4 +1,4 @@
-.PHONY: help run-main run-insert db-up db-down db-logs db-shell db-reset test-connection install install-dev clean
+.PHONY: help run-main run-insert run-embeddings db-up db-down db-logs db-shell db-reset test-connection install install-dev clean
 
 # Default target - show help
 help:
@@ -14,6 +14,7 @@ help:
 	@echo ""
 	@echo "  Data Operations:"
 	@echo "    run-insert          - Run example insert script (sets PYTHONPATH)"
+	@echo "    run-embeddings      - Generate vector embeddings for cards (sets PYTHONPATH)"
 	@echo ""
 	@echo "  Application:"
 	@echo "    run-main            - Run main application (sets PYTHONPATH)"
@@ -66,6 +67,10 @@ run-main:
 run-insert:
 	@echo "Running example insert script..."
 	PYTHONPATH=$(shell pwd) uv run python src/database/sql/upsert/example_upsert.py
+
+run-embeddings:
+	@echo "Running embedding pipeline..."
+	PYTHONPATH=$(shell pwd)/src uv run python -m database.etl.embedding_pipeline
 
 # Run Tests
 run-endpoint-tests:
