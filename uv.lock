@@ -95,6 +95,7 @@ dependencies = [
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
     { name = "python-dotenv" },
+    { name = "pywho" },
     { name = "requests" },
 ]
 
@@ -105,6 +106,7 @@ requires-dist = [
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "pywho", specifier = ">=0.3.3" },
     { name = "requests", specifier = ">=2.32.5" },
 ]
 
@@ -229,6 +231,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f0/26/19cadc79a718c5edbec86fd4919a6b6d3f681039a2f6d66d14be94e75fb9/python_dotenv-1.2.1.tar.gz", hash = "sha256:42667e897e16ab0d66954af0e60a9caa94f0fd4ecf3aaf6d2d260eec1aa36ad6", size = 44221, upload-time = "2025-10-26T15:12:10.434Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/14/1b/a298b06749107c305e1fe0f814c6c74aea7b2f1e10989cb30f544a1b3253/python_dotenv-1.2.1-py3-none-any.whl", hash = "sha256:b81ee9561e9ca4004139c6cbba3a238c32b03e4894671e181b671e8cb8425d61", size = 21230, upload-time = "2025-10-26T15:12:09.109Z" },
+]
+
+[[package]]
+name = "pywho"
+version = "0.3.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/61/46f74964fd1f7b611a5eed5eaf7ea8210b8676ca0bda4d736fadc39afe62/pywho-0.3.3.tar.gz", hash = "sha256:f434efc108fd09a8c011d3d81b2308d02234c053fc4bb95c62f68c94b983df57", size = 18667, upload-time = "2026-03-22T21:32:14.262Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d8/d9/25fe3f9b29387e55c779ffba33b194815505afe07348a0139a38df33b499/pywho-0.3.3-py3-none-any.whl", hash = "sha256:ac5953ea3f98c90cbcdbdedde93afbdce332dae59ff4b8a6c31974afeb1e17a0", size = 20423, upload-time = "2026-03-22T21:32:12.707Z" },
 ]
 
 [[package]]
