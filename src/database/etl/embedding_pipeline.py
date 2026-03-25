@@ -37,7 +37,7 @@ def run_embedding_pipeline() -> int:
     # Fetch all cards without embeddings
     with get_cursor() as cur:
         cur.execute(CARD_FIELDS_SQL)
-        columns = [desc[0] for desc in cur.description]
+        columns = [desc[0] for desc in cur.description] if cur.description else []
         rows = [dict(zip(columns, row)) for row in cur.fetchall()]
 
     total = len(rows)
