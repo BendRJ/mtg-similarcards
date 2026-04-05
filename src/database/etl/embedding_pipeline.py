@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 BATCH_SIZE = 256
 
 CARD_FIELDS_SQL = """
-    SELECT id, name, type_line, mana_cost, oracle_text,
-           keywords, colors, power, toughness
-    FROM cards
-    WHERE embedding IS NULL and set_code = 'tdc'
-    --LIMIT 200
+    SELECT c.id, type_line, oracle_text,
+           keywords, colors
+    FROM cards c
+    join sets on c.set_code = sets.code
+    WHERE embedding IS NULL and sets.released_at >= '2025-01-01'
 """
 
 
