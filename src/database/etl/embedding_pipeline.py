@@ -19,8 +19,8 @@ CARD_FIELDS_SQL = """
     SELECT id, name, type_line, mana_cost, oracle_text,
            keywords, colors, power, toughness
     FROM cards
-    WHERE embedding IS NULL
-    LIMIT 200
+    WHERE embedding IS NULL and set_code = 'tdc'
+    --LIMIT 200
 """
 
 

@@ -41,14 +41,8 @@ def build_card_text(card: dict[str, Any]) -> str:
     """
     parts: list[str] = []
 
-    if name := card.get("name"):
-        parts.append(name)
-
     if type_line := card.get("type_line"):
         parts.append(type_line)
-
-    if mana_cost := card.get("mana_cost"):
-        parts.append(f"Mana cost: {mana_cost}")
 
     if oracle_text := card.get("oracle_text"):
         parts.append(oracle_text)
@@ -60,9 +54,6 @@ def build_card_text(card: dict[str, Any]) -> str:
     if colors := card.get("colors"):
         if isinstance(colors, list) and colors:
             parts.append(f"Colors: {', '.join(colors)}")
-
-    if card.get("power") is not None and card.get("toughness") is not None:
-        parts.append(f"Power/Toughness: {card['power']}/{card['toughness']}")
 
     return ". ".join(parts)
 
