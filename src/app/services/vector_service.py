@@ -18,17 +18,16 @@ logger = logging.getLogger(__name__)
 MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_DIM = 384
 
-_model: SentenceTransformer | None = None
+_cache: dict[str, SentenceTransformer] = {}
 
 
 def get_model() -> SentenceTransformer:
     """Load and cache the sentence-transformer model."""
-    global _model
-    if _model is None:
+    if "model" not in _cache:
         logger.info("Loading sentence-transformer model '%s'...", MODEL_NAME)
-        _model = SentenceTransformer(MODEL_NAME)
+        _cache["model"] = SentenceTransformer(MODEL_NAME)
         logger.info("Model loaded.")
-    return _model
+    return _cache["model"]
 
 
 def build_card_text(card: dict[str, Any]) -> str:

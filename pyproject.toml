@@ -17,7 +17,12 @@ dependencies = [
     "psycopg[binary]>=3.2.0",
     "pydantic>=2.12.5",
     "python-dotenv>=1.0.0",
-    "pywho>=0.3.3",
     "requests>=2.32.5",
     "sentence-transformers>=3.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pylint>=4.0.5",
+    "pywho>=0.3.3",
 ]
