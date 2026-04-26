@@ -24,5 +24,9 @@ postgres_data/
 .DS_Store
 .vscode/
 
+# Training artifacts
+models/
+data/
+
 # specific files
 open_tasks.txt
