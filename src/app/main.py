@@ -1,6 +1,7 @@
 """
 Main module for mtg-similarcards application
 """
+import argparse
 import logging
 
 from app.config.logging_config import setup_logging
@@ -9,7 +10,7 @@ from database.etl.pipeline import DataPipeline
 
 logger = logging.getLogger(__name__)
 
-def main(set_codes: list[str] | None = None, run_pipeline_on_start: bool = True):
+def main(set_codes: list[str] | None = None, run_pipeline_on_start: bool = True, force: bool = False):
     """
     Main entry point for the application
     """
@@ -25,7 +26,7 @@ def main(set_codes: list[str] | None = None, run_pipeline_on_start: bool = True)
         # sets table check and insert
         logger.info("Starting DataPipeline...")
         pipeline = DataPipeline()
-        pipeline.run(set_codes=set_codes)
+        pipeline.run(set_codes=set_codes, force=force)
 
     else:
         logger.error("✗ Database connection failed!")
@@ -33,4 +34,10 @@ def main(set_codes: list[str] | None = None, run_pipeline_on_start: bool = True)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="MTG Similar Cards pipeline")
+    parser.add_argument("--sets", nargs="*", help="Set codes to process (e.g. MH3 DMU BLB)")
+    parser.add_argument("--no-pipeline", action="store_true", help="Skip pipeline execution")
+    parser.add_argument("--force", action="store_true", help="Force piepline run")
+    args = parser.parse_args()
+
+    main(set_codes=args.sets or None, run_pipeline_on_start=not args.no_pipeline, force=args.force)
