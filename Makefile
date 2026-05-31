@@ -1,4 +1,4 @@
-.PHONY: help run-main run-insert run-embeddings reset-embeddings db-up db-down db-logs db-shell db-reset test-connection install install-dev clean
+.PHONY: help run-main run-insert run-embeddings reset-embeddings db-up db-down db-logs db-shell db-reset test-connection install install-dev clean docker-build docker-run
 
 # Default target - show help
 help:
@@ -19,6 +19,10 @@ help:
 	@echo ""
 	@echo "  Application:"
 	@echo "    run-main            - Run main application (sets PYTHONPATH)"
+	@echo ""
+	@echo "  Docker:"
+	@echo "    docker-build        - Build Docker image"
+	@echo "    docker-run          - Run container (use SETS='MH3 DMU' to filter)"
 	@echo ""
 	@echo "  Testing:"
 	@echo "    run-endpoint-tests  - Run unittests for endpoint formatting (sets PYTHONPATH)"
@@ -87,6 +91,15 @@ run-endpoint-tests:
 run-all-tests:
 	@echo "Running all unit tests..."
 	PYTHONPATH=$(shell pwd)/src uv run python -m unittest discover -s tests -v
+
+# Docker
+docker-build:
+	@echo "Building Docker image..."
+	docker-compose build app
+
+docker-run:
+	@echo "Running mtg-similarcards via docker-compose..."
+	docker-compose run --rm app $(if $(SETS),--sets $(SETS)) $(if $(FORCE),--force)
 
 # Python environment
 
