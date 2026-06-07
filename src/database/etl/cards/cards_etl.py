@@ -1,6 +1,7 @@
 """Cards ETL — fetches cards for a given set and upserts them into the database."""
 
 import logging
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import LiteralString, cast
 
@@ -13,10 +14,10 @@ from database.etl.schema_validation import CardsValidation
 from database.etl.cards.cards_retrieval_svc import CardsRetrievalService
 from utils.etl_helper import get_search_uri_by_set
 
-setup_logging(log_level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 SQL_FILE = Path(__file__).parents[2] / "sql" / "upsert" / "cards_upsert.sql"
-logging.info(f"Reading SQL file: {SQL_FILE}")
+logger.info(f"Reading SQL file: {SQL_FILE}")
 CARDS_UPSERT_SQL = cast(LiteralString, SQL_FILE.read_text())
 
 
@@ -25,29 +26,39 @@ def _jsonb_or_none(value: dict | list | None) -> Json | None:
     return Json(value) if value is not None else None
 
 
-def run_cards_etl(set_code: str) -> list[dict] | None:
+@dataclass
+class CardsETLResult:
+    """Result of the cards ETL process for a single set."""
+    failed_cards: list[dict] = field(default_factory=list) #default_factory calls the factory fresh per instance; mutable [] would be shared across all instances
+    processed_cards: list[dict] = field(default_factory=list)
+
+
+def run_cards_etl(set_code: str) -> CardsETLResult | None:
     """Run cards ETL for a given set. Returns list of cards that failed validation."""
-    logging.info("Starting cards ETL for set: %s", set_code)
+    logger.info("Starting cards ETL for set: %s", set_code)
 
     cards_svc = CardsRetrievalService()
 
     search_uri = get_search_uri_by_set(set_code)
     if search_uri is None:
-        logging.error("No search_uri found for set '%s' — skipping ETL", set_code)
+        logger.error("No search_uri found for set '%s' — skipping ETL", set_code)
         return None
 
     set_cards = cards_svc.get_cards_by_set(search_uri)
 
-    logging.info(f"Got {len(set_cards)} cards from set search ({set_code})")
+    logger.info(f"Got {len(set_cards)} cards from set search ({set_code})")
     failed_cards: list[dict] = []
+    processed_cards: list[dict] = []
 
-    for mtg_card in set_cards:
-        logging.info(f"Processing card: {mtg_card.get('name')} ({mtg_card.get('set')}) - {mtg_card.get('id')}")
+    for idx, mtg_card in enumerate(set_cards, start=1):
+        if idx % 20 == 0:
+            logger.info(f"Processing card {idx}/{len(set_cards)}: {mtg_card.get('name')} ({mtg_card.get('set')}) - {mtg_card.get('id')}")
 
         try:
             loaded_dict = CardsValidation.model_validate(mtg_card)
+            processed_cards.append(mtg_card)
         except ValidationError as e:
-            logging.error(f"Validation failed for card {mtg_card.get('name', 'UNKNOWN')}: {e}")
+            logger.error(f"Validation failed for card {mtg_card.get('name', 'UNKNOWN')}: {e}")
             failed_cards.append(mtg_card)
             continue
 
@@ -107,18 +118,19 @@ def run_cards_etl(set_code: str) -> list[dict] | None:
                 c["penny_rank"],
                 _jsonb_or_none(c["prices"]),
             ))
-            logging.info(f"Inserted/Updated card: {c['name']} ({c['set_code']})")
+            if idx % 20 == 0:
+                logger.info(f"Inserted/Updated card: {c['name']} ({c['set_code']})")
 
     if failed_cards:
-        logging.warning(
+        logger.warning(
             f"{len(failed_cards)} cards failed validation: "
             f"{[c.get('name', 'UNKNOWN') for c in failed_cards]}"
         )
 
-    return failed_cards
+    return CardsETLResult(failed_cards=failed_cards, processed_cards=processed_cards)
 
 
 if __name__ == "__main__":
-    failed = run_cards_etl("tdm")
-    if failed:
-        logging.warning(f"{len(failed)} cards require reprocessing")
+    result = run_cards_etl("tdm")
+    if result and result.failed_cards:
+        logger.warning(f"{len(result.failed_cards)} cards require reprocessing")
