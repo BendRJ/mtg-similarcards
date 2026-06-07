@@ -66,7 +66,10 @@ test-connection:
 # Application
 run-main:
 	@echo "Running main application..."
-	PYTHONPATH=$(shell pwd) uv run python src/app/main.py
+	PYTHONPATH=$(shell pwd) uv run python src/app/main.py \
+		$(if $(SETS),--sets $(SETS)) \
+		$(if $(FORCE),--force) \
+		$(if $(RELEASE_YEAR),--release-year $(RELEASE_YEAR))
 
 # Data operations
 run-insert:
