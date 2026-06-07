@@ -32,6 +32,7 @@ class DataPipeline:
         self,
         set_codes: list[str] | None = None,
         force: bool = False,
+        release_year: int | None = None,
     ) -> PipelineResult:
         """Run the ETL process for all data sources.
 
@@ -46,7 +47,7 @@ class DataPipeline:
         # Step 1: Sets ETL (unless specific set_codes were provided)
         if set_codes is None:
             logging.info("Running sets ETL...")
-            sets_result = run_sets_etl()
+            sets_result = run_sets_etl(release_year)
             result.failed_sets = sets_result.failed_sets
             set_codes = sets_result.all_set_codes
             logging.info(

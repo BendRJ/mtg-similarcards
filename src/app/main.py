@@ -10,7 +10,7 @@ from database.etl.pipeline import DataPipeline
 
 logger = logging.getLogger(__name__)
 
-def main(set_codes: list[str] | None = None, run_pipeline_on_start: bool = True, force: bool = False):
+def main(set_codes: list[str] | None = None, run_pipeline_on_start: bool = False, force: bool = False, release_year: int | None = None):
     """
     Main entry point for the application
     """
@@ -20,13 +20,13 @@ def main(set_codes: list[str] | None = None, run_pipeline_on_start: bool = True,
     logger.info("Hello from mtg-similarcards!")
     logger.info("Testing database connection...")
 
-    if test_connection() and run_pipeline_on_start:
+    if test_connection():
         logger.info("✓ Database connection successful!")
-
+        if run_pipeline_on_start:
         # sets table check and insert
-        logger.info("Starting DataPipeline...")
-        pipeline = DataPipeline()
-        pipeline.run(set_codes=set_codes, force=force)
+            logger.info("Starting DataPipeline...")
+            pipeline = DataPipeline()
+            pipeline.run(set_codes=set_codes, force=force, release_year=release_year)
 
     else:
         logger.error("✗ Database connection failed!")
@@ -38,6 +38,12 @@ if __name__ == "__main__":
     parser.add_argument("--sets", nargs="*", help="Set codes to process (e.g. MH3 DMU BLB)")
     parser.add_argument("--no-pipeline", action="store_true", help="Skip pipeline execution")
     parser.add_argument("--force", action="store_true", help="Force piepline run")
+    parser.add_argument("--release-year", type=int)
     args = parser.parse_args()
 
-    main(set_codes=args.sets or None, run_pipeline_on_start=not args.no_pipeline, force=args.force)
+    main(
+        set_codes=args.sets or None,
+        run_pipeline_on_start=not args.no_pipeline,
+        force=args.force,
+        release_year=args.release_year,
+    )
