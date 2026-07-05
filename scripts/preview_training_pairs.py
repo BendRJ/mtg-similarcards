@@ -10,11 +10,11 @@ import textwrap
 
 from app.config.logging_config import setup_logging
 from training.generate_training_data import (
+    dedup_across_sources,
     load_all_cards,
     pairs_from_all_parts,
     pairs_from_cmc_color_type,
     pairs_from_keyword_color_overlap,
-    pairs_from_oracle_id,
     pairs_from_tribal_overlap,
     score_and_sample_pairs,
 )
@@ -25,15 +25,15 @@ def preview(sample_per_source: int, seed: int) -> None:
     cards = load_all_cards()
     print(f"Loaded {len(cards)} cards\n")
 
-    sources = {
-        "oracle_id": pairs_from_oracle_id(cards),
-        "all_parts": pairs_from_all_parts(cards),
-        "keyword_color": pairs_from_keyword_color_overlap(cards),
-        "tribal": pairs_from_tribal_overlap(cards),
-        "cmc_color_type": pairs_from_cmc_color_type(cards),
-    }
-
     rng = random.Random(seed)
+
+    sources = {
+        "all_parts": pairs_from_all_parts(cards),
+        "keyword_color": pairs_from_keyword_color_overlap(cards, rng),
+        "tribal": pairs_from_tribal_overlap(cards, rng),
+        "cmc_color_type": pairs_from_cmc_color_type(cards, rng),
+    }
+    sources = dedup_across_sources(sources)
 
     for name, pairs in sources.items():
         print(f"{'=' * 60}")
