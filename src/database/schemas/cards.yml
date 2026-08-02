@@ -1,0 +1,57 @@
+id: card-001
+
+source_text: |
+  Flying
+  At the beginning of each upkeep, create a 1/1 black and green Pest creature token with "When this token dies, you gain 1 life."
+  Pay 10 life: Untap all lands you control. Activate only once each turn.
+
+abilities:
+  - type: keyword
+    keywords:
+      - Flying
+
+  - type: triggered
+    keywords:
+      - At the beginning of each upkeep
+      - Beginning of upkeep
+      - Each upkeep
+
+  - type: triggered
+    keywords:
+      - When this token dies
+      - This token
+      - Dies
+
+  - type: activated
+    keywords:
+      - Pay 10 life
+      - Untap all lands you control
+      - Activate only once each turn
+      - Once each turn
+
+actions:
+  - Create
+  - Create a creature token
+  - Gain life
+  - Untap
+
+entities:
+  - Pest
+  - Creature token
+  - 1/1 black and green Pest creature token
+  - This token
+  - Lands
+
+game_concepts:
+  - Flying
+  - Upkeep
+  - Beginning of upkeep
+  - Dies
+  - Death trigger
+  - Life
+  - Untap
+  - Control
+  - Under your control
+  - Once each turn
+  - Activated ability
+  - Triggered ability

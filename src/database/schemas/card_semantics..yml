@@ -1,0 +1,108 @@
+title: MTG Semantic Extraction
+
+type: object
+
+required:
+  - id
+  - source_text
+  - abilities
+  - actions
+  - entities
+  - game_concepts
+
+properties:
+  id:
+    type:
+      - string
+    description: Unique identifier of the card or record.
+
+  source_text:
+    type: string
+    description: Original Oracle text.
+
+  abilities:
+    type: array
+    description: Individual abilities represented by their type and extracted key phrases.
+    items:
+      type: object
+      required:
+        - type
+        - keywords
+      properties:
+        type:
+          type: string
+          enum:
+            - keyword
+            - activated
+            - triggered
+            - static
+            - replacement
+            - prevention
+            - spell
+            - other
+
+        keywords:
+          type: array
+          description: >
+            Important words or phrases that describe the ability,
+            including keyword abilities, activation costs, trigger
+            conditions, restrictions, and other identifying text.
+          items:
+            type: string
+          examples:
+            - - Flying
+            - - "{T}"
+              - Add one mana
+              - Any color
+            - - At the beginning
+              - Each upkeep
+            - - Whenever
+              - Another Elf
+              - Enters the battlefield
+              - Under your control
+            - - If you control another Elf
+              - Draw a card
+
+  actions:
+    type: array
+    description: Effects or game actions performed by the card.
+    items:
+      type: string
+    examples:
+      - - Add one mana
+        - Create a creature token
+        - Gain life
+        - Draw a card
+        - Destroy target creature
+        - Exile target permanent
+
+  entities:
+    type: array
+    description: Players, cards, permanents, tokens, resources, or other game objects referenced by the card.
+    items:
+      type: string
+    examples:
+      - - Elf
+        - Creature token
+        - Opponent
+        - Spell
+        - Mana
+        - Artifact
+        - Land
+        - +1/+1 counter
+
+  game_concepts:
+    type: array
+    description: Rules concepts, zones, phases, characteristics, mechanics, and costs referenced by the card.
+    items:
+      type: string
+    examples:
+      - - Flying
+        - Battlefield
+        - Upkeep
+        - Enters the battlefield
+        - Under your control
+        - Toughness
+        - Mana color
+        - Tap
+        - Life gain

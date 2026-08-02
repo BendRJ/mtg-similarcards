@@ -1,0 +1,39 @@
+id: 575d407c-c37e-4664-b2e3-217dfd5a78a2
+
+source_text: |
+  At the beginning of each upkeep, create a 1/1 green Elf Warrior creature token.
+  Whenever another Elf enters the battlefield under your control, you gain life equal to its toughness.
+
+abilities:
+  - type: triggered
+    keywords:
+      - At the beginning of each upkeep
+      - Beginning of upkeep
+      - Each upkeep
+
+  - type: triggered
+    keywords:
+      - Whenever
+      - Another Elf
+      - Enters the battlefield
+      - Under your control
+
+actions:
+  - Create
+  - Create a creature token
+  - Gain life
+
+entities:
+  - Elf
+  - Creature token
+  - 1/1 creature token
+  - 1/1 green Elf Warrior creature token
+
+game_concepts:
+  - Upkeep
+  - Enters the battlefield
+  - Under your control
+  - Toughness
+  - Life gain
+  - Triggered ability
+  - Tokens
