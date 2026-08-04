@@ -5,8 +5,10 @@ import argparse
 import logging
 
 from app.config.logging_config import setup_logging
+from app.backend.backend import app
 from database.db import test_connection
 from database.etl.pipeline import DataPipeline
+import uvicorn
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,9 @@ def main(set_codes: list[str] | None = None, run_pipeline_on_start: bool = False
         logger.error("✗ Database connection failed!")
         logger.error("Make sure the database is running: docker compose up -d")
 
+    logger.info("Booting up backend-for-frontend.")
+    uvicorn.run(app)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MTG Similar Cards pipeline")
@@ -43,7 +48,7 @@ if __name__ == "__main__":
 
     main(
         set_codes=args.sets or None,
-        run_pipeline_on_start=not args.no_pipeline,
+        run_pipeline_on_start=args.no_pipeline,
         force=args.force,
         release_year=args.release_year,
     )
