@@ -21,6 +21,8 @@ dependencies = [
     "sentence-transformers>=3.0.0",
     "datasets>=2.14.0",
     "accelerate>=0.21.0",
+    "fastapi[standard]>=0.141.1",
+    "uvicorn>=0.52.1",
 ]
 
 [dependency-groups]
