@@ -1,4 +1,4 @@
-.PHONY: help run-main run-insert run-embeddings reset-embeddings db-up db-down db-logs db-shell db-reset test-connection install install-dev clean docker-build docker-run
+.PHONY: help run-main run-insert run-embeddings run-image reset-embeddings db-up db-down db-logs db-shell db-reset test-connection install install-dev clean docker-build docker-run
 
 # Default target - show help
 help:
@@ -79,6 +79,11 @@ run-insert:
 run-embeddings:
 	@echo "Running embedding pipeline..."
 	PYTHONPATH=$(shell pwd)/src uv run python -m database.etl.embedding_pipeline
+
+run-image:
+	@echo "Running image pipeline..."
+	uv run python -m database.etl.image_pipeline
+
 
 reset-embeddings:
 	@echo "Warning: This will clear all card embeddings!"

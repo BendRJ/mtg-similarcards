@@ -34,7 +34,8 @@ CARDS_WITHOUT_IMAGES_SQL = """
     JOIN sets ON c.set_code = sets.code
     WHERE ci.card_id IS NULL
       AND c.image_uris IS NOT NULL
-      AND sets.released_at >= '2025-01-01'
+      AND sets.released_at >= '2026-01-01'
+    limit 20
 """
 
 
