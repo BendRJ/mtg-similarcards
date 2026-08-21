@@ -107,7 +107,7 @@ docker-build:
 
 docker-run:
 	@echo "Running mtg-similarcards via docker-compose..."
-	docker-compose run --rm app $(if $(SETS),--sets $(SETS)) $(if $(FORCE),--force)
+	docker-compose run --rm app $(if $(SETS),--sets $(SETS)) $(if $(FORCE),--force) $(if $(PIPE),--run-pipeline)
 
 # Python environment
 

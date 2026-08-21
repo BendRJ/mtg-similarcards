@@ -41,14 +41,14 @@ def main(set_codes: list[str] | None = None, run_pipeline_on_start: bool = False
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MTG Similar Cards pipeline")
     parser.add_argument("--sets", nargs="*", help="Set codes to process (e.g. MH3 DMU BLB)")
-    parser.add_argument("--no-pipeline", action="store_true", help="Skip pipeline execution")
+    parser.add_argument("--run-pipeline", action="store_true", help="Run pipeline execution")
     parser.add_argument("--force", action="store_true", help="Force piepline run")
     parser.add_argument("--release-year", type=int)
     args = parser.parse_args()
 
     main(
         set_codes=args.sets or None,
-        run_pipeline_on_start=args.no_pipeline,
+        run_pipeline_on_start=args.run_pipeline,
         force=args.force,
         release_year=args.release_year,
     )
