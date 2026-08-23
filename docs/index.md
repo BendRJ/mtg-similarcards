@@ -40,7 +40,7 @@ mtg-similarcards/
 │   │   │       └── sets_retrieval_svc.py   # Set data retrieval service
 │   │   ├── schemas/                    # JSON schema definitions (cards_*, sets)
 │   │   └── sql/
-│   │       ├── create_tables/          # Table DDL (00_extensions, cards, sets)
+│   │       ├── create_tables/          # Table DDL, numerically ordered by FK dependency
 │   │       ├── queries/                # similar_cards.sql and other read queries
 │   │       └── upsert/                 # cards_upsert.sql, sets_upsert.sql
 │   ├── training/

@@ -2,11 +2,11 @@
 
 ## Overview
 
-This project uses PostgreSQL 16 (Alpine) running in a Docker container. The database is configured via `docker-compose.yml` and uses persistent volumes to store data.
+This project uses PostgreSQL 16 with the `pgvector` extension, running in a Docker container. The database is configured via `docker-compose.yml` and uses persistent volumes to store data.
 
 **Key Components:**
 - **Container:** `mtg-similarcards-db`
-- **Image:** `postgres:16-alpine`
+- **Image:** `pgvector/pgvector:pg16`
 - **Data Volume:** `postgres_data` (persists database data)
 - **Init Scripts:** `./src/database/sql/create_tables/` mounted to `/docker-entrypoint-initdb.d`
 
@@ -29,6 +29,7 @@ When you first run `docker-compose up`, PostgreSQL automatically:
 Currently initialized tables:
 - `sets` - MTG set information
 - `cards` - MTG card data
+- `card_images` - Cached card artwork (FK to `cards.id`)
 
 ## Important: docker-entrypoint-initdb.d Behavior
 
@@ -47,6 +48,58 @@ The `/docker-entrypoint-initdb.d` directory has special behavior:
 - The new SQL file will sit there unused until the database is recreated
 
 **Your data is safe!** Adding new table files will NOT overwrite your existing database.
+
+### Script Order Matters — Use a Numeric Prefix
+
+Scripts execute in **lexicographic order**, not dependency order. Any file that
+declares a `REFERENCES other_table(...)` foreign key must sort *after* the file
+creating that table. Hence the numeric prefixes:
+
+```
+00_extensions.sql     CREATE EXTENSION vector
+01_sets.sql
+02_cards.sql
+03_card_images.sql    REFERENCES cards(id)  -> must come after 02_
+```
+
+Note that `IF NOT EXISTS` does **not** protect you here — it guards against the
+table existing, but a `REFERENCES` clause still has to resolve its target
+immediately.
+
+**When adding a table, give it the next free prefix, placed after anything it
+references.** Without a prefix, `card_images.sql` would sort *before*
+`cards.sql` (`_` = 0x5F sorts before `s` = 0x73) and init would fail.
+
+### ⚠️ A Failed Init Poisons the Volume Permanently
+
+Init scripts run under `ON_ERROR_STOP=1`, and PGDATA is initialized **before**
+they run. So if any script errors:
+
+1. Init aborts — every remaining script is skipped
+2. But the data directory is already initialized, so the volume looks valid
+3. Every later start logs `Skipping initialization` and **never retries**
+4. Postgres starts, reports **healthy**, and accepts connections normally
+
+The result is a database that passes the healthcheck and answers `SELECT 1`
+while containing no tables. Applications only discover this at their first real
+query — e.g. `relation "sets" does not exist` from the sets ETL.
+
+**Rebuilding the image does not fix this.** `postgres_data` is a named volume
+with a lifecycle independent of images and containers; it survives
+`docker-compose build` and plain `docker-compose down`. Recovery requires
+dropping the volume:
+
+```bash
+make db-reset          # runs: docker-compose down -v
+docker-compose up -d postgres
+docker-compose logs postgres   # verify: no "ERROR:", no "Skipping initialization"
+```
+
+To confirm init actually succeeded rather than trusting the healthcheck:
+
+```bash
+docker exec mtg-similarcards-db psql -U mtguser -d mtgcards_db -c '\dt'
+```
 
 ## Adding New Tables to Existing Database
 

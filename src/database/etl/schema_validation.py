@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 class SetsValidation(BaseModel):
     """
     Validation of API response for sets endpoint.
-    Should match the columns defined in sets.sql and the fields in the upsert query.
+    Should match the columns defined in 01_sets.sql and the fields in the upsert query.
     Any fields in the API response not defined here will be ignored due to model_config.
     """
     code: str
@@ -30,7 +30,7 @@ class SetsValidation(BaseModel):
 class CardsValidation(BaseModel):
     """
     Validation of API response for cards endpoint.
-    Should match the columns defined in cards.sql and the fields in the upsert query.
+    Should match the columns defined in 02_cards.sql and the fields in the upsert query.
     Any fields in the API response not defined here will be ignored due to model_config.
     """
 
