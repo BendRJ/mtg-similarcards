@@ -14,6 +14,16 @@ from database.etl.schema_validation import CardsValidation, SetsValidation
 # Relative to project root (tests are executed from the repo root)
 SQL_DIR = Path(__file__).resolve().parent.parent / "src" / "database" / "sql" / "create_tables"
 
+# Columns that exist in the database but never appear in a Scryfall API response,
+# so they must NOT be fields on the Pydantic validation models. Keyed by DDL file.
+#
+# cards.embedding is computed after ingestion by app/services/vector_service.py,
+# not returned by the API - adding it to CardsValidation would misrepresent the
+# API contract just to satisfy this test.
+DB_ONLY_COLUMNS: dict[str, set[str]] = {
+    "02_cards.sql": {"embedding"},
+}
+
 
 def parse_sql_columns(sql_path: Path) -> set[str]:
     """
@@ -46,35 +56,45 @@ def parse_sql_columns(sql_path: Path) -> set[str]:
     return columns
 
 
+def api_backed_columns(sql_filename: str) -> set[str]:
+    """
+    Columns from a DDL file that are expected to have a Pydantic field.
+
+    Drops the DB_ONLY_COLUMNS entries so computed columns don't register as
+    schema drift.
+    """
+    return parse_sql_columns(SQL_DIR / sql_filename) - DB_ONLY_COLUMNS.get(sql_filename, set())
+
+
 class TestSetsSchemaAlignment(unittest.TestCase):
-    """Verify SetsValidation Pydantic fields match sets.sql columns."""
+    """Verify SetsValidation Pydantic fields match 01_sets.sql columns."""
 
     def test_pydantic_fields_match_sql_columns(self):
         """Every SQL column must exist as a Pydantic field and vice versa."""
-        sql_columns = parse_sql_columns(SQL_DIR / "sets.sql")
+        sql_columns = api_backed_columns("01_sets.sql")
         pydantic_fields = set(SetsValidation.model_fields.keys())
 
         self.assertEqual(
             sql_columns,
             pydantic_fields,
-            f"Schema mismatch between SetsValidation and sets.sql:\n"
+            f"Schema mismatch between SetsValidation and 01_sets.sql:\n"
             f"  In SQL but not in Pydantic: {sql_columns - pydantic_fields}\n"
             f"  In Pydantic but not in SQL: {pydantic_fields - sql_columns}",
         )
 
 
 class TestCardsSchemaAlignment(unittest.TestCase):
-    """Verify CardsValidation Pydantic fields match cards.sql columns."""
+    """Verify CardsValidation Pydantic fields match 02_cards.sql columns."""
 
     def test_pydantic_fields_match_sql_columns(self):
         """Every SQL column must exist as a Pydantic field and vice versa."""
-        sql_columns = parse_sql_columns(SQL_DIR / "cards.sql")
+        sql_columns = api_backed_columns("02_cards.sql")
         pydantic_fields = set(CardsValidation.model_fields.keys())
 
         self.assertEqual(
             sql_columns,
             pydantic_fields,
-            f"Schema mismatch between CardsValidation and cards.sql:\n"
+            f"Schema mismatch between CardsValidation and 02_cards.sql:\n"
             f"  In SQL but not in Pydantic: {sql_columns - pydantic_fields}\n"
             f"  In Pydantic but not in SQL: {pydantic_fields - sql_columns}",
         )
