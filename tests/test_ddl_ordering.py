@@ -92,14 +92,23 @@ class TestForeignKeyExecutionOrder(unittest.TestCase):
         violations: list[str] = []
         for index, path in enumerate(files):
             for table in sorted(tables_referenced(path)):
-                # TODO(human): decide what counts as an ordering violation and
-                # append a readable message to `violations` for each one.
-                #
-                # Available: `table` (the REFERENCES target), `index`/`path`
-                # (the referencing file and its position), and
-                # `creation_index` (table -> index of the file creating it,
-                # absent if no file creates it).
-                pass
+                created_at = creation_index.get(table)
+
+                if created_at is None:
+                    violations.append(
+                        f"{path.name} references '{table}', which no file in "
+                        f"{DDL_DIR.name}/ creates"
+                    )
+                elif created_at > index:
+                    violations.append(
+                        f"{path.name} references '{table}', but it is only created "
+                        f"later in {files[created_at].name} - renumber so the "
+                        f"referenced table comes first"
+                    )
+                # created_at == index is allowed: a file may group a table with
+                # its own foreign keys. PostgreSQL runs statements top-to-bottom
+                # within a file, so this is valid as long as the CREATE precedes
+                # the reference - which these regexes cannot verify.
 
         self.assertEqual(
             [],
