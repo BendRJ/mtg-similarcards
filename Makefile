@@ -22,7 +22,7 @@ help:
 	@echo ""
 	@echo "  Docker:"
 	@echo "    docker-build        - Build Docker image"
-	@echo "    docker-run          - Run container (use SETS='MH3 DMU' to filter)"
+	@echo "    docker-run          - Serve the API on :8000 (Ctrl-C to stop; SETS='MH3 DMU' PIPE=1 to run ETL first)"
 	@echo ""
 	@echo "  Testing:"
 	@echo "    run-endpoint-tests  - Run unittests for endpoint formatting (sets PYTHONPATH)"
@@ -106,8 +106,10 @@ docker-build:
 	docker-compose build app
 
 docker-run:
-	@echo "Running mtg-similarcards via docker-compose..."
-	docker-compose run --rm app $(if $(SETS),--sets $(SETS)) $(if $(FORCE),--force) $(if $(PIPE),--run-pipeline)
+	@echo "Running mtg-similarcards via docker-compose (API on http://127.0.0.1:8000, Ctrl-C to stop)..."
+	SETS="$(SETS)" FORCE="$(FORCE)" RUN_PIPELINE="$(PIPE)" RELEASE_YEAR="$(RELEASE_YEAR)" \
+		$(if $(HOST_PORT),HOST_PORT="$(HOST_PORT)") \
+		$(if $(API_PORT),API_PORT="$(API_PORT)") docker-compose up app
 
 # Python environment
 

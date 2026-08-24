@@ -22,6 +22,14 @@ COPY --from=build /app/pyproject.toml /app/
 
 ENV PATH="/app/.venv/bin:$PATH"
 
+# The code defaults to 127.0.0.1 so a bare local run is not exposed. Inside a container
+# that would bind container loopback only and be unreachable, so the image carries the
+# container-appropriate default. Exposure is governed by port publishing, not this.
+ENV API_HOST=0.0.0.0
+# Metadata only — publishes and forwards nothing. Documents the default port; the actual
+# container port comes from API_PORT at runtime.
+EXPOSE 8000
+
 RUN chown -R appuser:appuser /app
 
 USER appuser

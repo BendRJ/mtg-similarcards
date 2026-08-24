@@ -4,8 +4,25 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: mtg-similarcards-app
+    ports:
+      # HOST_PORT moves only the host side. The container side and API_PORT below are driven by
+      # the SAME variable on purpose: Docker forwards to the right-hand port, so uvicorn must
+      # listen exactly there. One variable makes them unable to disagree.
+      - "${HOST_PORT:-8000}:${API_PORT:-8000}"
     environment:
       DATABASE_URL: "postgresql://${POSTGRES_USER:-mtguser}:${POSTGRES_PASSWORD:-mtgpassword}@postgres:5432/${POSTGRES_DB:-mtgcards_db}"
+      # API_HOST is set to 0.0.0.0 by the Dockerfile — every container needs it, so the
+      # image owns that default. Override here only to deviate from it.
+      # API_PORT is used as substitution AND injection — unlike HOST_PORT that is intended:
+      # it is one concept ("the port the app listens on") that two places must agree on -> container port and api port must match
+      # container port set as right side under ports:
+      API_PORT: ${API_PORT:-8000}
+      # Pipeline options; `docker-compose up` cannot pass CLI args, so they travel as env vars.
+      # Unset variables arrive as empty strings, which main.py treats as "not set".
+      SETS: ${SETS:-}
+      RUN_PIPELINE: ${RUN_PIPELINE:-}
+      FORCE: ${FORCE:-}
+      RELEASE_YEAR: ${RELEASE_YEAR:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -19,12 +36,15 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mtgpassword}
       POSTGRES_DB: ${POSTGRES_DB:-mtgcards_db}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      # Bound to 127.0.0.1 so the database is not dialable from the local network.
+      # The app container does not use this mapping — it reaches postgres over the
+      # compose bridge by hostname. This exists only for host tooling (make db-shell).
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       # Named volume: persists database files across container restarts/removals in /var/lib/postgresql/data on the host
       - postgres_data:/var/lib/postgresql/data
       # Bind mount: SQL scripts here run automatically on first database initialization
-      # Note: Scripts only execute when database is created. Delete volume to re-run. 
+      # Note: Scripts only execute when database is created. Delete volume to re-run.
       - ./src/database/sql/create_tables:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mtguser} -d ${POSTGRES_DB:-mtgcards_db}"]

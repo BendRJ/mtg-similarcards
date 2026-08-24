@@ -18,7 +18,7 @@ make db-up
 | Flag | Type | Purpose |
 |---|---|---|
 | `--sets MH3 DMU BLB` | list[str] | Process only these set codes; skips the sets ETL step. |
-| `--no-pipeline` | flag | Test DB connection only, skip ETL. |
+| `--run-pipeline` | flag | Run the ETL. Omitted, the app only tests the DB connection and serves the API. |
 | `--force` | flag | Force pipeline rerun (ignore freshness checks). |
 | `--release-year 2024` | int | Filter sets to a single release year during sets ETL. |
 
@@ -37,8 +37,8 @@ PYTHONPATH=$(pwd) uv run python src/app/main.py --release-year 2024 --force
 # the sets ETL step is skipped entirely in that case)
 PYTHONPATH=$(pwd) uv run python src/app/main.py --sets MH3 DMU
 
-# DB connection check only
-PYTHONPATH=$(pwd) uv run python src/app/main.py --no-pipeline
+# DB connection check + API only, no ETL (omit --run-pipeline)
+PYTHONPATH=$(pwd) uv run python src/app/main.py
 ```
 
 Expected log evidence of a successful year filter:
@@ -79,7 +79,52 @@ Supported variables (see `Makefile` → `run-main` target):
 | `FORCE` | `--force` | Any non-empty value (e.g. `FORCE=1`) triggers the flag. |
 | `RELEASE_YEAR` | `--release-year 2024` | Must be a 4-digit integer (enforced by argparse `type=int`). |
 
+## Option 3: Run in Docker with `make docker-run`
+
+`make docker-run` serves the FastAPI backend on <http://127.0.0.1:8000> and runs in the **foreground** —
+stop it with Ctrl-C. It optionally runs the ETL first, before the API starts accepting requests.
+
+```bash
+# Serve the API only
+make docker-run
+
+# Run the pipeline for two sets first, then serve
+make docker-run PIPE=1 SETS="MH3 DMU"
+```
+
+Because `docker-compose up` cannot append positional CLI args the way `docker-compose run` could,
+configuration travels as **environment variables** instead. `src/app/main.py` reads them as argparse
+*defaults*, so an explicit CLI flag still wins for the `uv run` and `make run-main` paths above.
+
+| Env var | CLI equivalent | Notes |
+|---|---|---|
+| `SETS` | `--sets MH3 DMU` | Space-separated in one string. Empty means "discover all sets". |
+| `RUN_PIPELINE` | `--run-pipeline` | Truthy values: `1`, `true`, `yes`, `on`. Anything else (incl. `0`) is off. Set via `PIPE=1` on the make target. |
+| `FORCE` | `--force` | Same truthy rules as `RUN_PIPELINE`. |
+| `RELEASE_YEAR` | `--release-year 2024` | Malformed values are ignored rather than fatal. |
+| `API_HOST` | — | Uvicorn bind address. Defaults to `127.0.0.1`; compose sets `0.0.0.0`. |
+| `API_PORT` | — | Port uvicorn listens on *inside* the container, default `8000`. Also sets the container side of the port mapping, so the two cannot disagree. |
+| `HOST_PORT` | — | Port published on your machine, default `8000`. Only moves the host side — e.g. `HOST_PORT=9000` gives `9000->8000`. |
+
+Both are settable on the make target: `make docker-run HOST_PORT=7000 API_PORT=9000` publishes `7000->9000`
+with uvicorn bound to `0.0.0.0:9000`.
+
+`API_HOST` defaults to loopback so a local `make run-main` is not exposed on your network. Inside a
+container that default would make the API unreachable, which is why `docker-compose.yml` overrides it
+to `0.0.0.0`.
+
 ## Verification
+
+Confirm the API is reachable (in a second terminal, while `make docker-run` is up):
+
+```bash
+curl -s http://127.0.0.1:8000        # {"hello":"World!"}
+curl -s http://127.0.0.1:8000/cards
+docker ps --format '{{.Names}}\t{{.Ports}}' | grep app   # 0.0.0.0:8000->8000/tcp
+```
+
+The startup banner must read `Uvicorn running on http://0.0.0.0:8000`. If it says `127.0.0.1`, the
+container is binding its own loopback and nothing on the host can reach it.
 
 After a run with `--release-year 2024`, confirm only 2024 sets landed in the DB:
 
