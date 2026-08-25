@@ -1,4 +1,4 @@
-.PHONY: help run-main run-insert run-embeddings run-image reset-embeddings db-up db-down db-logs db-shell db-reset test-connection install install-dev clean docker-build docker-run
+.PHONY: help dev run-main run-insert run-embeddings run-image reset-embeddings db-up db-down db-logs db-shell db-reset test-connection install install-dev clean docker-build docker-run
 
 # Default target - show help
 help:
@@ -18,6 +18,7 @@ help:
 	@echo "    reset-embeddings    - Clear all embeddings (for regeneration after text changes)"
 	@echo ""
 	@echo "  Application:"
+	@echo "    dev                 - Serve the API with hot-reload (no Docker, no ETL pipeline)"
 	@echo "    run-main            - Run main application (sets PYTHONPATH)"
 	@echo ""
 	@echo "  Docker:"
@@ -64,6 +65,13 @@ test-connection:
 	PYTHONPATH=$(shell pwd) uv run python -c "from src.database.db import test_connection; exit(0 if test_connection() else 1)"
 
 # Application
+# No PYTHONPATH prefix here, unlike the targets below: fastapi dev walks up from the file
+# through the __init__.py chain, derives the import string app.backend.backend, and puts
+# src/ on sys.path itself. Reload is on by default in dev mode.
+dev:
+	@echo "Serving API with hot-reload on http://127.0.0.1:8000 (Ctrl-C to stop)..."
+	uv run fastapi dev src/app/backend/backend.py
+
 run-main:
 	@echo "Running main application..."
 	PYTHONPATH=$(shell pwd) uv run python src/app/main.py \
