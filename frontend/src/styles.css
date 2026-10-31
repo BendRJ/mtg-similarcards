@@ -57,6 +57,7 @@ a { color: var(--accent); }
 .btn:hover { border-color: var(--accent); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 12px; }
+.grid.grid-large { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 .tile { display: block; aspect-ratio: var(--card-ratio); border-radius: 7px; border: 1px solid var(--line); overflow: hidden; background: linear-gradient(160deg, var(--line), var(--bg)); color: var(--ink); text-decoration: none; }
 .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tile-placeholder { height: 100%; display: flex; align-items: flex-end; padding: 6px; font-size: 12px; }
@@ -66,8 +67,8 @@ a { color: var(--accent); }
 .error-state .btn { margin-left: 0; }
 
 .muted { color: var(--muted); }
-.detail { display: grid; grid-template-columns: 260px 1fr; gap: 24px; margin-bottom: 16px; }
-@media (max-width: 720px) { .detail { grid-template-columns: 1fr; } }
+.detail { display: grid; grid-template-columns: minmax(0, 520px) 1fr; gap: 24px; margin-bottom: 16px; }
+@media (max-width: 720px) { .detail { grid-template-columns: minmax(0, 520px); } }
 .detail-image { width: 100%; aspect-ratio: var(--card-ratio); border-radius: 12px; border: 1px solid var(--line); object-fit: cover; background: linear-gradient(160deg, var(--line), var(--bg)); }
 .detail-text h1 { font-size: 22px; margin: 0 0 8px; }
 .detail-text p { margin: 0 0 8px; }

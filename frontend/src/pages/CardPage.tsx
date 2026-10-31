@@ -51,7 +51,7 @@ function CardView({ id }: { id: string }) {
       <h2>Similar cards</h2>
       {similar.status === "loading" && <Loading />}
       {similar.status === "error" && similar.error && <SimilarError error={similar.error} onRetry={similar.reload} />}
-      {similar.status === "ok" && similar.data && <CardGrid cards={similar.data} />}
+      {similar.status === "ok" && similar.data && <CardGrid cards={similar.data} className="grid-large" />}
     </Layout>
   );
 }
@@ -65,7 +65,8 @@ function SimilarError({ error, onRetry }: { error: ApiError; onRetry: () => void
 
 function Detail({ card }: { card: CardDetail }) {
   const [failed, setFailed] = useState(false);
-  const showImage = card.image_url !== null && !failed;
+  const imageSrc = card.image_url_large ?? card.image_url;
+  const showImage = imageSrc !== null && !failed;
   const setLine = [
     card.set_name,
     card.collector_number ? `#${card.collector_number}` : null,
@@ -77,7 +78,7 @@ function Detail({ card }: { card: CardDetail }) {
   return (
     <div className="detail">
       {showImage ? (
-        <img className="detail-image" src={card.image_url!} alt={card.name} onError={() => setFailed(true)} />
+        <img className="detail-image" src={imageSrc!} alt={card.name} onError={() => setFailed(true)} />
       ) : (
         <div className="detail-image tile-placeholder">{card.name}</div>
       )}

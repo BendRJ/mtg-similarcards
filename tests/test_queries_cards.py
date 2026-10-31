@@ -35,6 +35,14 @@ class TestCardQueries(DBTestCase):
         insert_image(self.cur, "a1")
         self.assertEqual(queries.get_card(self.cur, "a1")["image_url"], "/cards/a1/image")
 
+    def test_get_card_returns_large_image_url(self):
+        insert_card(self.cur, "a1", "Bolt", image_uris=Jsonb({"normal": "https://x/n.jpg", "large": "https://x/l.jpg"}))
+        self.assertEqual(queries.get_card(self.cur, "a1")["image_url_large"], "https://x/l.jpg")
+
+    def test_large_image_url_none_without_image_uris(self):
+        insert_card(self.cur, "a1", "Bolt")
+        self.assertIsNone(queries.get_card(self.cur, "a1")["image_url_large"])
+
     def test_printings_newest_first_including_self(self):
         insert_card(self.cur, "old", "Bolt", oracle_id="o1", released_at="1993-08-05")
         insert_card(self.cur, "new", "Bolt", oracle_id="o1", released_at="2025-06-01")

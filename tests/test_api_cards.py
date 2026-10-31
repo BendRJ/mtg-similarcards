@@ -57,6 +57,11 @@ class TestCardDetailRoutes(CardRoutesTestCase):
     def test_get_card_200(self, _):
         self.assertEqual(self.client.get("/cards/a1").json()["name"], "Bolt")
 
+    @patch("app.backend.queries.get_card",
+           return_value={"id": "a1", "name": "Bolt", "image_url_large": "https://x/l.jpg"})
+    def test_get_card_includes_large_image_url(self, _):
+        self.assertEqual(self.client.get("/cards/a1").json()["image_url_large"], "https://x/l.jpg")
+
     @patch("app.backend.queries.get_printings", return_value=[])
     def test_printings_404_when_empty(self, _):
         self.assertEqual(self.client.get("/cards/nope/printings").status_code, 404)

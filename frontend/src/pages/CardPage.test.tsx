@@ -14,7 +14,7 @@ vi.mock("../api", async (importOriginal) => ({
 function detail(id: string, name: string, oracle: string): CardDetail {
   return {
     id, name, mana_cost: "{1}{R}", type_line: "Instant", colors: ["R"], rarity: "common", set_code: "lea",
-    image_url: null, oracle_id: null, cmc: 2, oracle_text: oracle, flavor_text: null, power: null,
+    image_url: null, image_url_large: null, oracle_id: null, cmc: 2, oracle_text: oracle, flavor_text: null, power: null,
     toughness: null, loyalty: null, keywords: null, color_identity: null, set_name: "Alpha",
     collector_number: "12", released_at: null, artist: "Jane Doe", legalities: null,
   };
@@ -53,6 +53,30 @@ describe("CardPage", () => {
     expect(await screen.findByText("Lightning Bolt")).toBeTruthy();
     expect(document.title).toBe("Shock");
     expect(api.similar).toHaveBeenCalledWith("a1", 12, expect.any(AbortSignal));
+  });
+
+  it("shows the large image on the card page", async () => {
+    vi.mocked(api.card).mockResolvedValue({
+      ...detail("a1", "Shock", "x"), image_url: "https://x/n.jpg", image_url_large: "https://x/l.jpg",
+    });
+    renderAt("/card/a1");
+    const img = await screen.findByRole("img", { name: "Shock" });
+    expect(img.getAttribute("src")).toBe("https://x/l.jpg");
+  });
+
+  it("falls back to the normal image when there is no large one", async () => {
+    vi.mocked(api.card).mockResolvedValue({
+      ...detail("a1", "Shock", "x"), image_url: "https://x/n.jpg", image_url_large: null,
+    });
+    renderAt("/card/a1");
+    const img = await screen.findByRole("img", { name: "Shock" });
+    expect(img.getAttribute("src")).toBe("https://x/n.jpg");
+  });
+
+  it("renders similar cards in the large grid", async () => {
+    const { container } = renderAt("/card/a1");
+    await screen.findByText("Lightning Bolt");
+    expect(container.querySelector(".grid.grid-large")).not.toBeNull();
   });
 
   it("shows a hint when similar cards are unavailable but keeps the page", async () => {

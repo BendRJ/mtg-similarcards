@@ -26,6 +26,7 @@ export interface CardDetail extends CardSummary {
   released_at: string | null;
   artist: string | null;
   legalities: Record<string, string> | null;
+  image_url_large: string | null;
 }
 
 export interface Printing {

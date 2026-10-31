@@ -50,7 +50,7 @@ SUMMARY_COLUMNS: LiteralString = (
 DETAIL_COLUMNS: LiteralString = SUMMARY_COLUMNS + """,
     c.oracle_id, c.cmc, c.oracle_text, c.flavor_text, c.power, c.toughness, c.loyalty,
     c.keywords, c.color_identity, c.set_name, c.collector_number, c.released_at,
-    c.artist, c.legalities"""
+    c.artist, c.legalities, c.image_uris->>'large' AS image_url_large"""
 
 PRINTING_COLUMNS: LiteralString = (
     "c.id, c.set_code, c.set_name, c.collector_number, c.released_at, c.rarity, " + IMAGE_URL
