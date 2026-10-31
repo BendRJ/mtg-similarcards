@@ -84,5 +84,24 @@ class TestSimilarRoute(CardRoutesTestCase):
         self.assertEqual(self.client.get("/cards/a1/similar?limit=51").status_code, 422)
 
 
+class TestCardImageRoute(CardRoutesTestCase):
+    @patch("app.backend.queries.get_card_image",
+           return_value={"image": b"\x89PNG", "content_type": "image/png"})
+    def test_image_served_with_cache_headers(self, _):
+        r = self.client.get("/cards/a1/image")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.content, b"\x89PNG")
+        self.assertEqual(r.headers["content-type"], "image/png")
+        self.assertEqual(r.headers["cache-control"], "public, max-age=31536000, immutable")
+
+    @patch("app.backend.queries.get_card_image", return_value={"image": b"img", "content_type": None})
+    def test_image_without_content_type_defaults_to_jpeg(self, _):
+        self.assertEqual(self.client.get("/cards/a1/image").headers["content-type"], "image/jpeg")
+
+    @patch("app.backend.queries.get_card_image", return_value=None)
+    def test_image_missing_404(self, _):
+        self.assertEqual(self.client.get("/cards/a1/image").status_code, 404)
+
+
 if __name__ == "__main__":
     unittest.main()

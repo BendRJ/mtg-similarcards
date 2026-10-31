@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.backend import queries
 from app.backend.db import get_db_cursor
@@ -49,3 +49,20 @@ def get_similar(card_id: str,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="No embedding for this card yet.")
     return similar
+
+
+# Images of a printing never change, so browsers may cache them for a year.
+IMAGE_HEADERS = {"Cache-Control": "public, max-age=31536000, immutable",
+                 "X-Content-Type-Options": "nosniff"}
+
+
+@router.get("/{card_id}/image", response_class=Response,
+            responses={200: {"content": {"image/jpeg": {}}}},
+            description="The stored image of one printing.")
+def get_image(card_id: str, cur: queries.Cursor = Depends(get_db_cursor)):
+    image = queries.get_card_image(cur, card_id)
+    if image is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No image stored for this card.")
+    return Response(content=bytes(image["image"]),
+                    media_type=image["content_type"] or "image/jpeg",
+                    headers=IMAGE_HEADERS)

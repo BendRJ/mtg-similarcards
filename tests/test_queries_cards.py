@@ -102,5 +102,17 @@ class TestSimilarQuery(DBTestCase):
         self.assertIsNone(queries.similar_cards(self.cur, "does-not-exist", 10))
 
 
+class TestCardImageQuery(DBTestCase):
+    def test_get_card_image_round_trips_bytes(self):
+        insert_card(self.cur, "a1", "Bolt")
+        insert_image(self.cur, "a1", b"\x89PNG", "image/png")
+        image = queries.get_card_image(self.cur, "a1")
+        self.assertEqual(bytes(image["image"]), b"\x89PNG")
+        self.assertEqual(image["content_type"], "image/png")
+
+    def test_get_card_image_unknown_returns_none(self):
+        self.assertIsNone(queries.get_card_image(self.cur, "nope"))
+
+
 if __name__ == "__main__":
     unittest.main()

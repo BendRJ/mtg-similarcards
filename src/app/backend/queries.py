@@ -115,3 +115,10 @@ def similar_cards(cur: Cursor, card_id: str, limit: int) -> list[dict[str, Any]]
         return None
     cur.execute(SIMILAR_CARDS_SQL, {"card_id": card_id, "limit": limit})
     return cur.fetchall()
+
+
+def get_card_image(cur: Cursor, card_id: str) -> dict[str, Any] | None:
+    """The stored image bytes and content type for a printing, or None if none is stored."""
+    cur.execute("SELECT ci.image, ci.content_type FROM card_images ci WHERE ci.card_id = %(card_id)s",
+                {"card_id": card_id})
+    return cur.fetchone()
