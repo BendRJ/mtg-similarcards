@@ -13,12 +13,14 @@ RUN uv sync --locked
 
 FROM python:3.13@sha256:a922e65d7cd72025d709fe78f3847c4cf89cc69c6fe1b6902f1c4d39fe9af82e AS runtime
 
-RUN useradd -m appuser
+# /app is created owned by appuser: the app writes app.log into its working directory
+RUN useradd -m appuser && install -d -o appuser -g appuser /app
 WORKDIR /app
 
-COPY --from=build /app/.venv /app/.venv
-COPY --from=build /app/src /app/src
-COPY --from=build /app/pyproject.toml /app/
+# --chown at COPY time: a separate chown -R would duplicate the whole venv in a new layer
+COPY --from=build --chown=appuser:appuser /app/.venv /app/.venv
+COPY --from=build --chown=appuser:appuser /app/src /app/src
+COPY --from=build --chown=appuser:appuser /app/pyproject.toml /app/
 
 ENV PATH="/app/.venv/bin:$PATH"
 
@@ -29,8 +31,6 @@ ENV API_HOST=0.0.0.0
 # Metadata only — publishes and forwards nothing. Documents the default port; the actual
 # container port comes from API_PORT at runtime.
 EXPOSE 8000
-
-RUN chown -R appuser:appuser /app
 
 USER appuser
 
