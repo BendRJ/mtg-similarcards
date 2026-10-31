@@ -1,4 +1,4 @@
-.PHONY: help dev run-main run-insert run-embeddings run-image reset-embeddings db-up db-down db-logs db-shell db-reset test-connection install install-dev clean docker-build docker-run
+.PHONY: help dev run-main run-insert run-embeddings run-image reset-embeddings db-up db-down db-logs db-shell db-reset test-connection install install-dev clean docker-build docker-run frontend-install frontend-dev frontend-test frontend-build
 
 # Default target - show help
 help:
@@ -24,6 +24,12 @@ help:
 	@echo "  Docker:"
 	@echo "    docker-build        - Build Docker image"
 	@echo "    docker-run          - Serve the API on :8000 (Ctrl-C to stop; SETS='MH3 DMU' PIPE=1 to run ETL first)"
+	@echo ""
+	@echo "  Frontend:"
+	@echo "    frontend-install    - Install frontend dependencies (npm ci in frontend/)"
+	@echo "    frontend-dev        - Serve the frontend with hot-reload on :5173 (API proxied to :8000)"
+	@echo "    frontend-test       - Run frontend unit tests (vitest)"
+	@echo "    frontend-build      - Typecheck and build the frontend into frontend/dist"
 	@echo ""
 	@echo "  Testing:"
 	@echo "    run-endpoint-tests  - Run unittests for endpoint formatting (sets PYTHONPATH)"
@@ -118,6 +124,23 @@ docker-run:
 	SETS="$(SETS)" FORCE="$(FORCE)" RUN_PIPELINE="$(PIPE)" RELEASE_YEAR="$(RELEASE_YEAR)" \
 		$(if $(HOST_PORT),HOST_PORT="$(HOST_PORT)") \
 		$(if $(API_PORT),API_PORT="$(API_PORT)") docker-compose up app
+
+# Frontend
+frontend-install:
+	@echo "Installing frontend dependencies..."
+	npm --prefix frontend ci
+
+frontend-dev:
+	@echo "Serving frontend with hot-reload on http://127.0.0.1:5173 (Ctrl-C to stop)..."
+	npm --prefix frontend run dev
+
+frontend-test:
+	@echo "Running frontend tests..."
+	npm --prefix frontend test
+
+frontend-build:
+	@echo "Building frontend..."
+	npm --prefix frontend run build
 
 # Python environment
 
