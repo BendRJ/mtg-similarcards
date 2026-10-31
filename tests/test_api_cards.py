@@ -5,7 +5,7 @@ covered by test_queries_cards.
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 from fastapi.testclient import TestClient
 
@@ -22,6 +22,25 @@ class CardRoutesTestCase(unittest.TestCase):
         app = create_app([])
         app.dependency_overrides[get_db_cursor] = fake_cursor
         self.client = TestClient(app)
+
+
+class TestRandomRoute(CardRoutesTestCase):
+    # get_card raising proves /cards/random isn't shadowed by /cards/{card_id}.
+    @patch("app.backend.queries.get_card", side_effect=AssertionError("shadowed by /{card_id}"))
+    @patch("app.backend.queries.random_cards", return_value=[])
+    def test_random_passes_colors_and_default_limit(self, random_cards, _):
+        response = self.client.get("/cards/random?colors=R")
+        self.assertEqual(response.status_code, 200)
+        random_cards.assert_called_once_with(ANY, ["R"], 100)
+
+    def test_random_requires_colors(self):
+        self.assertEqual(self.client.get("/cards/random").status_code, 422)
+
+    def test_random_rejects_unknown_color(self):
+        self.assertEqual(self.client.get("/cards/random?colors=X").status_code, 422)
+
+    def test_random_rejects_limit_over_100(self):
+        self.assertEqual(self.client.get("/cards/random?colors=R&limit=101").status_code, 422)
 
 
 class TestCardDetailRoutes(CardRoutesTestCase):

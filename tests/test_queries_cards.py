@@ -163,6 +163,26 @@ class TestSimilarQuery(DBTestCase):
         self.assertIsNone(queries.similar_cards(self.cur, "does-not-exist", 10))
 
 
+class TestRandomQuery(DBTestCase):
+    def test_random_any_of_colors_one_per_card_playable_only(self):
+        insert_card(self.cur, "r_old", "Shock", oracle_id="o1", colors=["R"], released_at="2010-01-01")
+        insert_card(self.cur, "r_new", "Shock", oracle_id="o1", colors=["R"], released_at="2025-01-01")
+        insert_card(self.cur, "rg", "Gruul", oracle_id="o2", colors=["R", "G"])
+        insert_card(self.cur, "u", "Blue", oracle_id="o3", colors=["U"])
+        insert_card(self.cur, "tok", "Goblin", oracle_id="o4", colors=["R"], layout="token")
+        self.assertEqual({c["id"] for c in queries.random_cards(self.cur, ["R"], 100)}, {"r_new", "rg"})
+
+    def test_random_colorless(self):
+        insert_card(self.cur, "c", "Sol Ring", oracle_id="o1", colors=[])
+        insert_card(self.cur, "n", "Null", oracle_id="o2", colors=None)
+        self.assertEqual([c["id"] for c in queries.random_cards(self.cur, ["C"], 100)], ["c"])
+
+    def test_random_respects_limit(self):
+        for i in range(5):
+            insert_card(self.cur, f"r{i}", f"R{i}", oracle_id=f"o{i}", colors=["R"])
+        self.assertEqual(len(queries.random_cards(self.cur, ["R"], 3)), 3)
+
+
 class TestCardImageQuery(DBTestCase):
     def test_get_card_image_round_trips_bytes(self):
         insert_card(self.cur, "a1", "Bolt")

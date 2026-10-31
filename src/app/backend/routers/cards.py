@@ -6,7 +6,7 @@ from app.backend.models import CardDetail, CardSummary, Printing, SimilarCard
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
-# Static paths like /cards/autocomplete must be declared above /{card_id},
+# Static paths like /cards/autocomplete and /cards/random must be declared above /{card_id},
 # or FastAPI matches them as a card id.
 
 
@@ -16,6 +16,15 @@ def autocomplete(q: str = Query(min_length=2),
                  limit: int = Query(10, ge=1, le=25),
                  cur: queries.Cursor = Depends(get_db_cursor)):
     return queries.autocomplete_cards(cur, q, limit)
+
+
+@router.get("/random", response_model=list[CardSummary],
+            description="Random cards having any of the given colors, one entry per card.")
+def random_cards(colors: str = Query(pattern=r"^[WUBRGC](,[WUBRGC])*$",
+                                     description="Any of W,U,B,R,G,C (C = colorless), comma-separated."),
+                 limit: int = Query(100, ge=1, le=100),
+                 cur: queries.Cursor = Depends(get_db_cursor)):
+    return queries.random_cards(cur, colors.split(","), limit)
 
 
 @router.get("/{card_id}", response_model=CardDetail,
