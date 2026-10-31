@@ -10,7 +10,7 @@ import requests
 from app.config.logging_config import setup_logging
 from database.etl.cards.cards_etl import run_cards_etl
 from database.etl.sets.sets_etl import run_sets_etl
-from src.utils.etl_helper import _set_has_cards
+from utils.etl_helper import _set_has_cards
 
 logger = logging.getLogger(__name__)
 
