@@ -8,6 +8,8 @@ entry point to the project's documentation and an annotated map of the repositor
 | Doc | What it covers |
 |---|---|
 | [Database runbook](./runbooks/database.md) | DB lifecycle, reset, shell access, backup/restore, schema management. |
+| [BFF API design](./superpowers/specs/2026-10-31-bff-api-design.md) | Endpoints, response shapes and rules of the backend-for-frontend API. |
+| [API follow-ups](./api-database-wiring.md) | Open work on the API's database layer: vector index, pooling, credentials. |
 | [Run pipeline runbook](./runbooks/run-pipeline.md) | Running the ETL pipeline, CLI flags, `make` targets, verification. |
 | [Database schemas README](../src/database/schemas/README.md) | JSON schema definitions used for validation. |
 | [Training README](../src/training/README.md) | Fine-tuning the embedding model on MTG data. |
@@ -20,11 +22,17 @@ mtg-similarcards/
 ├── src/
 │   ├── app/
 │   │   ├── main.py                     # CLI entry point + argparse (pipeline launcher)
+│   │   ├── backend/
+│   │   │   ├── backend.py              # FastAPI app: create_app, CORS, DB-error → 503
+│   │   │   ├── db.py                   # get_db_cursor — request-scoped dict_row cursor
+│   │   │   ├── models.py               # Pydantic response models (the public API contract)
+│   │   │   ├── queries.py              # All read SQL behind the routes
+│   │   │   └── routers/                # cards.py (/cards/...), sets.py (/sets/...)
 │   │   ├── config/
 │   │   │   ├── api_endpoints.py        # External API endpoint configuration (Scryfall)
 │   │   │   └── logging_config.py       # Logger setup
 │   │   └── services/
-│   │       └── vector_service.py       # Vector similarity / embedding query logic
+│   │       └── vector_service.py       # Sentence-transformer model + embedding generation
 │   ├── database/
 │   │   ├── db.py                       # PostgreSQL connection helpers (psycopg 3)
 │   │   ├── etl/
@@ -50,9 +58,11 @@ mtg-similarcards/
 ├── analytics/
 │   └── sets.sql                        # Ad-hoc analytics query
 ├── scripts/                            # Standalone test/preview scripts
-├── tests/                              # pytest suite
+├── tests/                              # unittest suite (make run-all-tests); DB tests skip without Postgres
 ├── docs/
 │   ├── index.md                        # This file
+│   ├── api-database-wiring.md          # Open follow-ups for the API's database layer
+│   ├── superpowers/                    # Design specs and implementation plans
 │   └── runbooks/                       # Operational runbooks (database, run-pipeline)
 ├── Dockerfile                          # Application container image
 ├── docker-compose.yml                  # PostgreSQL container configuration
@@ -64,9 +74,11 @@ mtg-similarcards/
 ## Key entry points
 
 - **Start here:** `src/app/main.py` — CLI entry point and argument parser.
+- **API:** `src/app/backend/backend.py` — the FastAPI app; `make dev` serves it with hot-reload, `/docs` lists every route.
 - **Pipeline orchestration:** `src/database/etl/pipeline.py` — `DataPipeline.run`.
 - **Database access:** `src/database/db.py` — connection helpers (`get_cursor`, `get_db_connection`, `test_connection`).
-- **Similarity query:** `src/database/sql/queries/similar_cards.sql` + `src/app/services/vector_service.py`.
+- **Similarity query:** `src/database/sql/queries/similar_cards.sql`, called from `src/app/backend/queries.py`.
+- **Embeddings:** `src/database/etl/embedding_pipeline.py` + `src/app/services/vector_service.py`.
 
 ## Related
 
