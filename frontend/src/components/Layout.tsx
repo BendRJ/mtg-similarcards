@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
+import SearchBar from "./SearchBar";
 
 type LayoutProps = {
   showSearch?: boolean;
@@ -13,8 +14,11 @@ export default function Layout({ showSearch = true, children }: LayoutProps) {
         <Link to="/" className="logo">
           MTG Similar Cards
         </Link>
-        {/* TODO(Task 5): render <SearchBar /> here when showSearch is true */}
-        {showSearch ? <div className="search-slot" /> : null}
+        {showSearch ? (
+          <div className="search-slot">
+            <SearchBar />
+          </div>
+        ) : null}
       </header>
       <main className="content">{children}</main>
       <footer className="footer">

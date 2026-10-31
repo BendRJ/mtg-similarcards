@@ -29,3 +29,18 @@ a { color: var(--accent); }
 .pip-R { background: var(--R); } .pip-G { background: var(--G); } .pip-C { background: var(--C); }
 
 .card { aspect-ratio: 63 / 88; border-radius: 7px; border: 1px solid var(--line); background: linear-gradient(160deg, var(--line), var(--bg)); }
+
+.search { position: relative; width: 100%; }
+.search-input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font: inherit; color: var(--ink); background: var(--bg); }
+.search-input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.search-big .search-input { font-size: 18px; padding: 14px 16px; }
+.dropdown { position: absolute; left: 0; right: 0; top: 100%; z-index: 10; max-width: 620px; margin: 4px auto 0; padding: 0; list-style: none; text-align: left; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: 0 8px 24px rgba(0, 0, 0, .12); }
+.search-normal .dropdown { margin-left: 0; }
+.dd-group { padding: 8px 12px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.dd-empty { padding: 12px; color: var(--muted); }
+.dd-row { display: flex; align-items: center; gap: 10px; padding: 7px 12px; cursor: pointer; }
+.dd-row:hover, .dd-row.active { background: var(--bg); }
+.dd-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thumb { width: 26px; height: 36px; border-radius: 3px; background: var(--line); flex: none; object-fit: cover; }
+.seticon { width: 26px; height: 26px; border-radius: 50%; background: var(--line); flex: none; object-fit: contain; }
+.meta { color: var(--muted); font-size: 13px; margin-left: auto; white-space: nowrap; }
