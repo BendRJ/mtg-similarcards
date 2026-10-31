@@ -1,10 +1,20 @@
 import Layout from "../components/Layout";
+import ColorPip from "../components/ColorPip";
+import SearchBar from "../components/SearchBar";
+import { COLORS } from "../lib/colors";
 
-// Placeholder: replaced in a later task.
 export default function HomePage() {
   return (
-    <Layout>
-      <h1>Home</h1>
+    <Layout showSearch={false}>
+      <div className="hero">
+        <div className="logo">⟡ Similar Cards</div>
+        <SearchBar size="big" autoFocus />
+        <div className="pips">
+          {COLORS.map((c) => (
+            <ColorPip key={c} color={c} />
+          ))}
+        </div>
+      </div>
     </Layout>
   );
 }
