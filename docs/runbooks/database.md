@@ -166,7 +166,7 @@ alembic upgrade head
 docker-compose down -v
 
 # Start fresh - all SQL files in create_tables/ will execute
-docker-compose up -d
+docker-compose up -d postgres
 ```
 
 **When to use:**
@@ -302,14 +302,14 @@ docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' mtg-simi
 ## Quick Reference
 
 ```bash
-# Start database
-docker-compose up -d
+# Start database (postgres only — plain `up -d` also builds and starts app + frontend)
+docker-compose up -d postgres
 
 # Stop database (preserves data)
 docker-compose down
 
 # Reset database (DELETES DATA!)
-docker-compose down -v && docker-compose up -d
+docker-compose down -v && docker-compose up -d postgres
 
 # Connect to database
 docker exec -it mtg-similarcards-db psql -U mtguser -d mtgcards_db

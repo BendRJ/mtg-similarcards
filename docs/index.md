@@ -9,7 +9,8 @@ entry point to the project's documentation and an annotated map of the repositor
 |---|---|
 | [Database runbook](./runbooks/database.md) | DB lifecycle, reset, shell access, backup/restore, schema management. |
 | [BFF API design](./superpowers/specs/2026-10-31-bff-api-design.md) | Endpoints, response shapes and rules of the backend-for-frontend API. |
-| [API follow-ups](./api-database-wiring.md) | Open work on the API's database layer: vector index, pooling, credentials. |
+| [Frontend design](./superpowers/specs/2026-10-31-frontend-design.md) | The five screens, search behaviour, Docker/nginx setup ([mockups](./superpowers/specs/2026-10-31-frontend-mockups.html)). |
+| [Open follow-ups](./api-database-wiring.md) | Known gaps and deferred work: embeddings, vector index, pooling, credentials, API and frontend rough edges. |
 | [Run pipeline runbook](./runbooks/run-pipeline.md) | Running the ETL pipeline, CLI flags, `make` targets, verification. |
 | [Database schemas README](../src/database/schemas/README.md) | JSON schema definitions used for validation. |
 | [Training README](../src/training/README.md) | Fine-tuning the embedding model on MTG data. |
@@ -38,6 +39,7 @@ mtg-similarcards/
 │   │   ├── etl/
 │   │   │   ├── pipeline.py             # DataPipeline.run — ETL orchestration
 │   │   │   ├── embedding_pipeline.py   # Card text → embeddings pipeline
+│   │   │   ├── image_pipeline.py       # Downloads card images into card_images
 │   │   │   ├── schema_validation.py    # JSON schema validation of API payloads
 │   │   │   ├── session_manager.py      # HTTP session / retry handling
 │   │   │   ├── cards/
@@ -55,19 +57,29 @@ mtg-similarcards/
 │   │   └── generate_training_data.py   # Build fine-tuning training pairs
 │   └── utils/
 │       └── etl_helper.py               # Shared ETL helper functions
-├── frontend/                           # React + Vite web UI, served by nginx in Docker (Dockerfile, nginx.conf.template)
+├── frontend/                           # React + Vite + TypeScript web UI
+│   ├── src/
+│   │   ├── App.tsx                     # Route table: /, /card/:id, /set/:code, /color/:c
+│   │   ├── api.ts, types.ts            # Typed API client (relative /cards, /sets URLs) + response types
+│   │   ├── lib/                        # colors, set matching, useAsync (stale-safe data hook)
+│   │   ├── components/                 # Layout, SearchBar, CardGrid/CardTile, ErrorState, Loading
+│   │   ├── pages/                      # HomePage, ColorPage, CardPage, SetPage, NotFoundPage
+│   │   └── styles.css                  # Design tokens (light/dark) and layout
+│   ├── vite.config.ts                  # Dev proxy for /cards and /sets → :8000, Vitest config
+│   ├── Dockerfile                      # node build stage → nginx runtime stage
+│   └── nginx.conf.template             # Serves the SPA, proxies /cards and /sets to the app container
 ├── analytics/
 │   └── sets.sql                        # Ad-hoc analytics query
 ├── scripts/                            # Standalone test/preview scripts
 ├── tests/                              # unittest suite (make run-all-tests); DB tests skip without Postgres
 ├── docs/
 │   ├── index.md                        # This file
-│   ├── api-database-wiring.md          # Open follow-ups for the API's database layer
+│   ├── api-database-wiring.md          # Open follow-ups (known gaps, deferred work)
 │   ├── superpowers/                    # Design specs and implementation plans
 │   └── runbooks/                       # Operational runbooks (database, run-pipeline)
 ├── Dockerfile                          # Application container image
 ├── docker-compose.yml                  # App, frontend and PostgreSQL containers (ports on 127.0.0.1)
-├── Makefile                            # db-up, run-main, test-connection, etc.
+├── Makefile                            # db-up, dev, run-main, docker-run, frontend-dev, frontend-test, etc.
 ├── pyproject.toml                      # Project metadata and dependencies (uv)
 └── .pylintrc                           # Lint configuration
 ```

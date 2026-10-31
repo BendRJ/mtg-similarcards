@@ -97,11 +97,13 @@ Supported variables (see `Makefile` → `run-main` target):
 
 ## Option 3: Run in Docker with `make docker-run`
 
-`make docker-run` serves the FastAPI backend on <http://127.0.0.1:8000> and runs in the **foreground** —
-stop it with Ctrl-C. It optionally runs the ETL first, before the API starts accepting requests.
+`make docker-run` serves the FastAPI backend on <http://127.0.0.1:8000> and the frontend on
+<http://127.0.0.1:8080>, and runs in the **foreground** — stop it with Ctrl-C. It optionally runs the
+ETL first, before the API starts accepting requests. The frontend container (nginx) proxies `/cards`
+and `/sets` to the API over the Compose network.
 
 ```bash
-# Serve the API only
+# Serve the API and the frontend
 make docker-run
 
 # Run the pipeline for two sets first, then serve
@@ -123,27 +125,33 @@ configuration travels as **environment variables** instead. `src/app/main.py` re
 | `RELEASE_YEAR` | `--release-year 2024` | Malformed values are ignored rather than fatal. |
 | `API_HOST` | — | Uvicorn bind address. Defaults to `127.0.0.1`; compose sets `0.0.0.0`. |
 | `API_PORT` | — | Port uvicorn listens on *inside* the container, default `8000`. Also sets the container side of the port mapping, so the two cannot disagree. |
-| `HOST_PORT` | — | Port published on your machine, default `8000`. Only moves the host side — e.g. `HOST_PORT=9000` gives `9000->8000`. |
+| `HOST_PORT` | — | API port published on your machine, default `8000`. Only moves the host side — e.g. `HOST_PORT=9000` gives `9000->8000`. |
+| `FRONTEND_PORT` | — | Frontend port published on your machine, default `8080` (nginx listens on 80 inside). Set it in the environment, e.g. `FRONTEND_PORT=3000 make docker-run`. |
 
 Both are settable on the make target: `make docker-run HOST_PORT=7000 API_PORT=9000` publishes `7000->9000`
 with uvicorn bound to `0.0.0.0:9000`.
 
 `API_HOST` defaults to loopback so a local `make run-main` is not exposed on your network. Inside a
 container that default would make the API unreachable, which is why `docker-compose.yml` overrides it
-to `0.0.0.0`.
+to `0.0.0.0`. Exposure is still governed by port publishing: every published port in
+`docker-compose.yml` is bound to `127.0.0.1`, so nothing is reachable from your local network.
 
 ## Verification
 
 Confirm the API is reachable (in a second terminal, while `make docker-run` is up):
 
 ```bash
-curl -s http://127.0.0.1:8000        # {"hello":"World!"}
-curl -s http://127.0.0.1:8000/cards
-docker ps --format '{{.Names}}\t{{.Ports}}' | grep app   # 0.0.0.0:8000->8000/tcp
+curl -s http://127.0.0.1:8000                                   # {"hello":"World!"}
+curl -s 'http://127.0.0.1:8000/cards/autocomplete?q=bolt'      # JSON array of cards
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/  # 200 (frontend)
+docker ps --format '{{.Names}}\t{{.Ports}}' | grep -E 'app|frontend'
+# mtg-similarcards-app       127.0.0.1:8000->8000/tcp
+# mtg-similarcards-frontend  127.0.0.1:8080->80/tcp
 ```
 
-The startup banner must read `Uvicorn running on http://0.0.0.0:8000`. If it says `127.0.0.1`, the
-container is binding its own loopback and nothing on the host can reach it.
+The app's startup banner must read `Uvicorn running on http://0.0.0.0:8000` (that's the bind address
+*inside* the container). If it says `127.0.0.1`, the container is binding its own loopback and nothing
+on the host can reach it.
 
 After a run with `--release-year 2024`, confirm only 2024 sets landed in the DB:
 

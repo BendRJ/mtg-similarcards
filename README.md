@@ -1,142 +1,69 @@
 # MTG Similar Cards
 
-A Python application for finding similar Magic: The Gathering cards.
+A card discovery app for Magic: The Gathering players. Search a card, see its printings and
+cards similar to it (vector similarity over rules text), browse a set by color, or pull 100 random
+cards of a color.
+
+- **Backend:** Python 3.13, FastAPI backend-for-frontend over PostgreSQL 16 + `pgvector`
+  (psycopg 3), fed by an ETL pipeline from the Scryfall API.
+- **Frontend:** React + Vite + TypeScript in `frontend/`, served by nginx in Docker.
 
 ## Prerequisites
 
-- Python 3.13+
-- Docker and Docker Compose
-- [uv](https://github.com/astral-sh/uv) (Python package manager)
+- Python 3.13+ and [uv](https://github.com/astral-sh/uv)
+- Node.js 26 and npm (frontend development only)
+- Docker with Docker Compose
 
-## Dependencies
-
-This project uses:
-- **psycopg 3** - Modern PostgreSQL adapter for Python
-- **python-dotenv** - Environment variable management
-
-## Quick Start
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd mtg-similarcards
-   ```
-
-2. **Install Python dependencies**
-   ```bash
-   uv sync
-   ```
-
-3. **Start the database**
-   ```bash
-   docker compose up -d
-   ```
-
-   This will:
-   - Pull the PostgreSQL 16 Alpine image
-   - Create a container named `mtg-similarcards-db`
-   - Initialize the database with SQL schemas from `src/database/sql/create_tables/`
-   - Persist data in a Docker volume
-
-4. **Verify the database is running**
-   ```bash
-   docker compose ps
-   ```
-
-   You should see the `mtg-similarcards-db` container running and healthy.
-
-## Database
-
-### Configuration
-
-Database credentials are stored in the `.env` file (not tracked in git). Default values:
-
-- **User:** `mtguser`
-- **Password:** `mtgpassword`
-- **Database:** `mtgcards_db`
-- **Port:** `5432`
-
-### Connection in Python
-
-The `src/database/db.py` module provides convenient connection helpers:
-
-```python
-from database.db import get_cursor
-
-# Simple query
-with get_cursor() as cur:
-    cur.execute("SELECT * FROM sets")
-    results = cur.fetchall()
-    for row in results:
-        print(row)
-```
-
-Or use the connection directly:
-
-```python
-from database.db import get_db_connection
-
-with get_db_connection() as conn:
-    with conn.cursor() as cur:
-        cur.execute("INSERT INTO sets (code, name, type) VALUES (%s, %s, %s)",
-                    ('ONE', 'Phyrexia: All Will Be One', 'expansion'))
-```
-
-### Test Connection
-
-```python
-from database.db import test_connection
-
-if test_connection():
-    print("Database connection successful!")
-else:
-    print("Database connection failed!")
-```
-
-### Detailed Documentation
-
-For comprehensive database information including:
-- Docker commands and operations
-- Adding new tables to existing databases
-- Troubleshooting and common issues
-- Backup and restore procedures
-- Schema management
-- Security best practices
-
-**See: [docs/runbooks/database.md](docs/runbooks/database.md)**
-
-## Development
-
-### Running the Application
+## Quick start (Docker)
 
 ```bash
-uv run python src/app/main.py
+make db-up                               # postgres only
+make run-main SETS="FIN"                 # load some card data (see the run-pipeline runbook)
+make run-embeddings                      # embeddings for similar cards (sets released 2025+ only, for now)
+make docker-run                          # API on :8000 + frontend on :8080 (Ctrl-C to stop)
 ```
 
-### Project Structure
+Open <http://127.0.0.1:8080>. All ports are published on `127.0.0.1` only: frontend 8080,
+API 8000, postgres 5432.
 
+## Local development
+
+```bash
+uv sync                                  # Python dependencies
+make frontend-install                    # frontend dependencies (npm ci)
+
+make db-up                               # postgres in Docker
+make dev                                 # API with hot-reload on :8000 (/docs lists every route)
+make frontend-dev                        # frontend with hot-reload on :5173, proxies /cards and /sets to :8000
 ```
-mtg-similarcards/
-├── src/
-│   ├── app/
-│   │   ├── main.py              # Application entry point
-│   │   ├── config/
-│   │   │   └── api_endpoints.py # API endpoint configurations
-│   │   └── services/            # Business logic services
-│   │       ├── card_retrieval_service.py
-│   │       └── vector_service.py
-│   └── database/
-│       ├── __init__.py
-│       ├── db.py                # Database connection helpers
-│       ├── schemas/             # JSON schema definitions
-│       └── sql/
-│           ├── create_tables/   # Table creation SQL scripts
-│           └── insert/          # Sample insert scripts
-├── docs/
-│   └── runbooks/
-│       └── database.md          # Comprehensive database guide
-├── tests/                       # Test files
-├── .pylintrc                    # Pylint configuration
-├── docker-compose.yml           # Database container configuration
-├── pyproject.toml               # Project metadata and dependencies
-└── README.md                    # This file
+
+Frontend routes are singular (`/card/:id`, `/set/:code`, `/color/:c`); API paths are plural
+(`/cards…`, `/sets…`). Only the API prefixes are proxied, in Vite and in nginx.
+
+## Tests
+
+```bash
+make run-all-tests                       # backend unittest suite; DB tests skip without Postgres
+make frontend-test                       # frontend unit tests (Vitest)
+npm --prefix frontend run typecheck
+```
+
+CI (`.github/workflows/tests.yml`) runs the backend suite and a frontend job (typecheck, tests, build).
+
+## Configuration
+
+The Python code reads `DATABASE_URL`. Compose injects it inside the containers; on the host,
+`.env` (not tracked) or the fallback in `src/database/db.py` applies. Database user, name and
+password come from `docker-compose.yml` / `.env` — don't put real values in docs or commits.
+The open issue around the hardcoded fallback is tracked in
+[docs/api-database-wiring.md](docs/api-database-wiring.md).
+
+## Documentation
+
+Start at **[docs/index.md](docs/index.md)**. It maps the repository and links:
+
+- [Database runbook](docs/runbooks/database.md): DB lifecycle, reset, shell access, backups.
+- [Run pipeline runbook](docs/runbooks/run-pipeline.md): loading card data, `make` targets, Docker.
+- [BFF API design](docs/superpowers/specs/2026-10-31-bff-api-design.md) and
+  [frontend design](docs/superpowers/specs/2026-10-31-frontend-design.md).
+- [Open follow-ups](docs/api-database-wiring.md): known gaps and deferred work.

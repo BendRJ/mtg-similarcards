@@ -1,8 +1,9 @@
-# API database layer: open follow-ups
+# Open follow-ups: API and frontend
 
-The API now reads from Postgres. This doc started on 2026-08-25 as a plan for replacing the
-hardcoded card fixture; that work landed in PR #23 (see the
-[BFF API design](./superpowers/specs/2026-10-31-bff-api-design.md)). What is left here is the
+The API reads from Postgres and the React frontend runs on top of it. This doc started on 2026-08-25
+as a plan for replacing the hardcoded card fixture; that work landed in PR #23 (see the
+[BFF API design](./superpowers/specs/2026-10-31-bff-api-design.md)), and the frontend followed (see the
+[frontend design](./superpowers/specs/2026-10-31-frontend-design.md)). What is left here is the
 connectivity reference and the items that are still open. Updated 2026-10-31; check it still
 matches the code before acting on it.
 
@@ -13,6 +14,11 @@ matches the code before acting on it.
 - Each request gets one connection via `get_db_cursor()` (`src/app/backend/db.py`), a `dict_row`
   cursor over `database.db.get_db_connection()`.
 - psycopg errors map to **503** with a generic message; details are logged server-side only.
+- `image_url` is the stored image (`/cards/{id}/image`) if there is one, else Scryfall's `normal`
+  link from `image_uris`. The card detail also returns `image_url_large` (Scryfall's `large` link),
+  which the card page uses.
+- `GET /cards/random?colors=&limit=` (max 100) backs the frontend's color pages; it shares the
+  any-of color rule (`COLOR_FILTER`) with `/sets/{code}/cards`.
 - Route tests use a fake cursor; SQL tests run against real Postgres in a rolled-back
   `bff_test` schema and skip when no DB is reachable (CI has none).
 
@@ -70,7 +76,7 @@ credentials are used anywhere real, rotate them.
 
 ### Smaller API rough edges
 
-From the final review of PR #23, deferred:
+From the final reviews of the API and frontend work, deferred:
 
 - `?colors=` with an empty value returns 422 instead of "no filter"; a repeated `colors=` keeps
   only the last value.
@@ -78,9 +84,37 @@ From the final review of PR #23, deferred:
   SQL bugs, which then look like an outage.
 - The collector-number sort strips all non-digits, so `M21-10` sorts as 2110.
 - For ~265 cards the "most recent printing" shown is a non-English promo.
+- `/cards/random` sorts every matching card by `random()` per request — fine at current size.
+- The card page always uses Scryfall's `large` image, even when a local image is stored.
+
+### Frontend rough edges
+
+Deferred from the frontend reviews; none blocks use:
+
+- **Search bar:** Esc, blur or an outside click doesn't cancel an Enter pressed while results were
+  still loading (it navigates once they arrive). The dropdown stays open after Tab-away and doesn't
+  reopen on click after Esc. Missing accessible label on the combobox.
+- **Tab titles** go stale on Home, the not-found pages and the set page's code-only fallback.
+- **Empty states:** a color filter or random pick with no cards shows an empty grid, no message.
+- **Card page:** with the API down it shows three separate error boxes; printing chips show only
+  `SET YEAR` (no collector number); a failed `large` image goes straight to the placeholder instead
+  of trying the `normal` one; long unbreakable words could overflow the text column at 860–1000 px.
+- **Accessibility polish:** color chips are named by bare letters, the loading placeholder has no
+  `role="status"`.
+- **nginx** (`frontend/nginx.conf.template`): `Host $host` drops the port on API redirects (use
+  `$http_host`); `index.html` has no `Cache-Control: no-cache`; `app` is resolved once at startup, so
+  recreating only the app container needs a frontend restart.
+- **CI:** no `timeout-minutes` on the jobs.
+
+### Docker image size
+
+The API image is ~9.7 GB, mostly PyTorch with CUDA libraries pulled in by `sentence-transformers`.
+A CPU-only PyTorch build would likely shrink it to a few GB; that changes where a dependency is
+installed from, so it needs a deliberate decision.
 
 ## Related
 
 - [BFF API design](./superpowers/specs/2026-10-31-bff-api-design.md) — endpoints and rules.
+- [Frontend design](./superpowers/specs/2026-10-31-frontend-design.md) — screens and Docker setup.
 - [Database runbook](./runbooks/database.md) — DB lifecycle, reset, shell access.
 - [Run pipeline runbook](./runbooks/run-pipeline.md) — getting card data into the table.
