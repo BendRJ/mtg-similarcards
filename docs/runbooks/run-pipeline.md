@@ -13,6 +13,19 @@ Prerequisite for both: the database must be up.
 make db-up
 ```
 
+## Quick Recipe: Ingest Only This Year's Sets
+
+```bash
+make run-main RUN_PIPELINE=1 RELEASE_YEAR=2026          # local
+make docker-run PIPE=1 RELEASE_YEAR=2026                # in Docker
+```
+
+- `RUN_PIPELINE=1` is required — without it the app skips the ETL and only serves the API.
+- Do **not** combine with `SETS` — that skips the sets ETL, which is where the year filter lives.
+- Sets that already have cards are skipped; add `FORCE=1` to reload them.
+- The process does not exit when the ETL finishes: the API starts afterwards. Ctrl-C once the cards ETL summary is logged.
+- Scryfall lists upcoming sets before release, so "this year" can include sets whose cards are still incomplete.
+
 ## CLI Flags (from `src/app/main.py`)
 
 | Flag | Type | Purpose |
@@ -28,14 +41,14 @@ make db-up
 
 ```bash
 # From the repo root
-PYTHONPATH=$(pwd) uv run python src/app/main.py --release-year 2024
+PYTHONPATH=$(pwd) uv run python src/app/main.py --run-pipeline --release-year 2024
 
 # Combine flags
-PYTHONPATH=$(pwd) uv run python src/app/main.py --release-year 2024 --force
+PYTHONPATH=$(pwd) uv run python src/app/main.py --run-pipeline --release-year 2024 --force
 
 # Specific sets only (release-year is ignored when --sets is provided —
 # the sets ETL step is skipped entirely in that case)
-PYTHONPATH=$(pwd) uv run python src/app/main.py --sets MH3 DMU
+PYTHONPATH=$(pwd) uv run python src/app/main.py --run-pipeline --sets MH3 DMU
 
 # DB connection check + API only, no ETL (omit --run-pipeline)
 PYTHONPATH=$(pwd) uv run python src/app/main.py
@@ -57,24 +70,27 @@ INFO Raw API response for set: 24 fields
 
 `run-main` forwards optional variables to the underlying `uv run` call using GNU Make's `$(if …)` conditional. Unset variables emit nothing; set variables become flags.
 
+`run-main` does **not** forward `--run-pipeline`. The ETL is switched on by the `RUN_PIPELINE` env var instead, which `main.py` reads as the flag's default (make exports command-line variables to the recipe's environment).
+
 ```bash
-# Default — no filters, runs full pipeline
+# DB connection check + API only, no ETL
 make run-main
 
+# Full pipeline, no filters
+make run-main RUN_PIPELINE=1
+
 # Filter by release year
-make run-main RELEASE_YEAR=2024
+make run-main RUN_PIPELINE=1 RELEASE_YEAR=2024
 
 # Force a rerun limited to specific sets
-make run-main SETS="MH3 DMU" FORCE=1
-
-# Combine all three
-make run-main RELEASE_YEAR=2024 SETS="MH3 DMU" FORCE=1
+make run-main RUN_PIPELINE=1 SETS="MH3 DMU" FORCE=1
 ```
 
 Supported variables (see `Makefile` → `run-main` target):
 
 | Make var | Forwarded as | Notes |
 |---|---|---|
+| `RUN_PIPELINE` | env var (not a flag) | Required to run the ETL. Truthy values: `1`, `true`, `yes`, `on`. |
 | `SETS` | `--sets MH3 DMU` | Skips sets ETL; `RELEASE_YEAR` has no effect when `SETS` is set. |
 | `FORCE` | `--force` | Any non-empty value (e.g. `FORCE=1`) triggers the flag. |
 | `RELEASE_YEAR` | `--release-year 2024` | Must be a 4-digit integer (enforced by argparse `type=int`). |
@@ -90,6 +106,9 @@ make docker-run
 
 # Run the pipeline for two sets first, then serve
 make docker-run PIPE=1 SETS="MH3 DMU"
+
+# Run the pipeline for one release year first, then serve
+make docker-run PIPE=1 RELEASE_YEAR=2026
 ```
 
 Because `docker-compose up` cannot append positional CLI args the way `docker-compose run` could,
