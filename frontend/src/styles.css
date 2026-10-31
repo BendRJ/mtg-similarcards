@@ -1,0 +1,86 @@
+:root {
+  --bg: #f4f2ee; --panel: #fff; --ink: #1d1d1f; --muted: #6b6b70; --line: #dcd8d0; --accent: #5b3fd1;
+  --W: #f5ecc8; --U: #a9d3f0; --B: #b9aea8; --R: #f0a38b; --G: #9fd4a8; --C: #d6d6d6;
+  --card-ratio: 63 / 88;
+  --selected: rgba(29, 29, 31, .55);
+}
+/* Dark background is kept a step above black so black-bordered card images stand out. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #2a2a31; --panel: #34343c; --ink: #ececf1; --muted: #a3a3ae; --line: #4a4a55; --accent: #9b87ff; --selected: rgba(255, 255, 255, .7);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #2a2a31; --panel: #34343c; --ink: #ececf1; --muted: #a3a3ae; --line: #4a4a55; --accent: #9b87ff; --selected: rgba(255, 255, 255, .7);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, sans-serif; }
+a { color: var(--accent); }
+
+.layout { min-height: 100vh; display: flex; flex-direction: column; }
+.topbar, .content, .footer { width: 100%; max-width: 1100px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+.topbar { display: flex; align-items: center; gap: 12px; padding-top: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.logo { font-weight: 700; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.search-slot { flex: 1; min-width: 0; }
+.content { flex: 1; padding-top: 20px; padding-bottom: 32px; }
+.footer { padding-top: 16px; padding-bottom: 24px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); }
+
+.pip { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #222; border: 2px solid rgba(0, 0, 0, .12); }
+.pip-W { background: var(--W); } .pip-U { background: var(--U); } .pip-B { background: var(--B); }
+.pip-R { background: var(--R); } .pip-G { background: var(--G); } .pip-C { background: var(--C); }
+
+.card { aspect-ratio: 63 / 88; border-radius: 7px; border: 1px solid var(--line); background: linear-gradient(160deg, var(--line), var(--bg)); }
+
+.search { position: relative; width: 100%; }
+.search-input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font: inherit; color: var(--ink); background: var(--bg); }
+.search-input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.search-big .search-input { font-size: 18px; padding: 14px 16px; }
+.dropdown { position: absolute; left: 0; right: 0; top: 100%; z-index: 10; max-width: 620px; margin: 4px auto 0; padding: 0; list-style: none; text-align: left; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: 0 8px 24px rgba(0, 0, 0, .12); }
+.search-normal .dropdown { margin-left: 0; }
+.dd-group { padding: 8px 12px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.dd-empty { padding: 12px; color: var(--muted); }
+.dd-row { display: flex; align-items: center; gap: 10px; padding: 7px 12px; cursor: pointer; }
+.dd-row:hover, .dd-row.active { background: var(--bg); }
+.dd-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thumb { width: 26px; height: 36px; border-radius: 3px; background: var(--line); flex: none; object-fit: cover; }
+.seticon { width: 26px; height: 26px; border-radius: 50%; background: var(--line); flex: none; object-fit: contain; }
+.meta { color: var(--muted); font-size: 13px; margin-left: auto; white-space: nowrap; }
+
+.hero { text-align: center; padding: 36px 0 20px; }
+.hero .logo { display: block; font-size: 28px; margin-bottom: 18px; }
+.hero .search { max-width: 620px; margin: 0 auto; text-align: left; }
+.pips { display: flex; justify-content: center; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
+.pip { text-decoration: none; }
+
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+.toolbar h1 { font-size: 20px; margin: 0; }
+.btn { margin-left: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); padding: 7px 14px; font: inherit; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.tile { display: block; aspect-ratio: var(--card-ratio); border-radius: 7px; border: 1px solid var(--line); overflow: hidden; background: linear-gradient(160deg, var(--line), var(--bg)); color: var(--ink); text-decoration: none; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile-placeholder { height: 100%; display: flex; align-items: flex-end; padding: 6px; font-size: 12px; }
+.tile-skeleton { opacity: .6; }
+
+.error-state { text-align: center; padding: 32px 0; color: var(--muted); }
+.error-state .btn { margin-left: 0; }
+
+.muted { color: var(--muted); }
+.detail { display: grid; grid-template-columns: minmax(0, 520px) minmax(280px, 1fr); gap: 24px; margin-bottom: 16px; }
+@media (max-width: 859px) { .detail { grid-template-columns: minmax(0, 520px); } }
+.detail-image { width: 100%; aspect-ratio: var(--card-ratio); border-radius: 12px; border: 1px solid var(--line); object-fit: cover; background: linear-gradient(160deg, var(--line), var(--bg)); }
+.detail-text h1 { font-size: 22px; margin: 0 0 8px; }
+.detail-text p { margin: 0 0 8px; }
+.mana { color: var(--muted); font-size: 16px; font-weight: normal; }
+.oracle { white-space: pre-line; }
+.printings { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin: 6px 0 18px; }
+.printing { flex: none; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--ink); text-decoration: none; font-size: 12px; }
+/* Highlight drawn on the border (not an outline), so the scrolling strip can't clip it. */
+.printing.sel { border-color: var(--selected); box-shadow: inset 0 0 0 1px var(--selected); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.seticon { width: 26px; height: 26px; flex: none; object-fit: contain; }

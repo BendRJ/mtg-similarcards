@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card Discovery Mockups</title>
+<style>
+  :root { --bg:#f4f2ee; --panel:#fff; --ink:#1d1d1f; --muted:#6b6b70; --line:#dcd8d0; --accent:#5b3fd1;
+          --W:#f5ecc8; --U:#a9d3f0; --B:#b9aea8; --R:#f0a38b; --G:#9fd4a8; --C:#d6d6d6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+          --bg:#16161a; --panel:#202026; --ink:#ececf1; --muted:#9a9aa5; --line:#33333c; --accent:#9b87ff; } }
+  :root[data-theme="dark"] { --bg:#16161a; --panel:#202026; --ink:#ececf1; --muted:#9a9aa5; --line:#33333c; --accent:#9b87ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, -apple-system, sans-serif; padding:24px 16px 64px; }
+  main { max-width:1100px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .lead { color:var(--muted); margin:0 0 28px; }
+  section { margin-bottom:40px; }
+  .label { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:6px; }
+  h2 { font-size:18px; margin:0 0 6px; }
+  .note { color:var(--muted); font-size:13px; margin:8px 0 0; }
+  .note b { color:var(--ink); font-weight:600; }
+  .screen { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; overflow:hidden; }
+  .bar { display:flex; align-items:center; gap:12px; padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:18px; }
+  .logo { font-weight:700; white-space:nowrap; }
+  .search { flex:1; border:1px solid var(--line); border-radius:8px; padding:9px 12px; color:var(--muted); background:var(--bg); min-width:0; }
+  .search.big { font-size:18px; padding:14px 16px; }
+  .hero { text-align:center; padding:36px 0 20px; }
+  .hero .logo { font-size:28px; margin-bottom:18px; }
+  .hero .search { max-width:620px; margin:0 auto; text-align:left; }
+  .colors { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:22px; }
+  .pip { width:52px; height:52px; border-radius:50%; display:grid; place-items:center; font-weight:700; color:#222; border:2px solid rgba(0,0,0,.12); }
+  .dropdown { max-width:620px; margin:4px auto 0; text-align:left; border:1px solid var(--line); border-radius:8px; background:var(--panel); box-shadow:0 8px 24px rgba(0,0,0,.12); }
+  .dd-group { padding:8px 12px 4px; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  .dd-row { display:flex; align-items:center; gap:10px; padding:7px 12px; }
+  .dd-row:hover, .dd-row.active { background:var(--bg); }
+  .thumb { width:26px; height:36px; border-radius:3px; background:var(--line); flex:none; }
+  .seticon { width:26px; height:26px; border-radius:50%; background:var(--line); flex:none; }
+  .meta { color:var(--muted); font-size:13px; margin-left:auto; white-space:nowrap; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(118px,1fr)); gap:12px; }
+  .card { aspect-ratio:63/88; border-radius:7px; background:linear-gradient(160deg, var(--line), var(--bg)); border:1px solid var(--line); display:flex; align-items:flex-end; padding:6px; font-size:12px; }
+  .toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+  .chip { border:1px solid var(--line); border-radius:999px; padding:5px 11px; font-size:13px; }
+  .chip.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .btn { border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-size:13px; }
+  .detail { display:grid; grid-template-columns:260px 1fr; gap:24px; }
+  @media (max-width:720px) { .detail { grid-template-columns:1fr; } }
+  .bigcard { aspect-ratio:63/88; border-radius:12px; background:linear-gradient(160deg, var(--R), var(--line)); }
+  .kv { display:grid; grid-template-columns:120px 1fr; gap:4px 12px; font-size:14px; margin:12px 0; }
+  .kv span:nth-child(odd) { color:var(--muted); }
+  .oracle { background:var(--bg); border-radius:8px; padding:10px 12px; font-size:14px; }
+  .printings { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin:6px 0 18px; }
+  .printings .card { width:74px; flex:none; font-size:10px; }
+  .printings .card.sel { outline:2px solid var(--accent); }
+  h3 { font-size:15px; margin:16px 0 6px; }
+  .q { background:var(--panel); border-left:3px solid var(--accent); padding:10px 14px; border-radius:6px; margin-top:10px; font-size:14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Card discovery: first mockups</h1>
+  <p class="lead">Wireframes for the five screens. Grey boxes stand for card images. Notes under each screen mark my guesses.</p>
+
+  <section>
+    <div class="label">1 · Home</div>
+    <h2>Search bar + color buttons</h2>
+    <div class="screen">
+      <div class="hero">
+        <div class="logo">⟡ Similar Cards</div>
+        <div class="search big">Search cards or sets…</div>
+        <div class="colors">
+          <div class="pip" style="background:var(--W)">W</div>
+          <div class="pip" style="background:var(--U)">U</div>
+          <div class="pip" style="background:var(--B)">B</div>
+          <div class="pip" style="background:var(--R)">R</div>
+          <div class="pip" style="background:var(--G)">G</div>
+          <div class="pip" style="background:var(--C)">C</div>
+        </div>
+      </div>
+    </div>
+    <p class="note"><b>Guess:</b> a sixth button for colorless (C). Leave it out if you only want the five colors.</p>
+  </section>
+
+  <section>
+    <div class="label">2 · Typing in the search bar</div>
+    <h2>One dropdown, cards and sets in separate groups</h2>
+    <div class="screen">
+      <div class="search big" style="max-width:620px;margin:0 auto;color:var(--ink)">mod|</div>
+      <div class="dropdown">
+        <div class="dd-group">Cards</div>
+        <div class="dd-row active"><div class="thumb"></div>Modern Age<span class="meta">Instant · MH3</span></div>
+        <div class="dd-row"><div class="thumb"></div>Modular Monstrosity<span class="meta">Creature · M3C</span></div>
+        <div class="dd-row"><div class="thumb"></div>Mode Shift<span class="meta">Sorcery · DSK</span></div>
+        <div class="dd-group">Sets</div>
+        <div class="dd-row"><div class="seticon"></div>Modern Horizons 3<span class="meta">MH3 · 2024</span></div>
+        <div class="dd-row"><div class="seticon"></div>Modern Horizons 2<span class="meta">MH2 · 2021</span></div>
+      </div>
+    </div>
+    <p class="note"><b>Guess:</b> sets are matched by name and by code (typing "mh3" finds Modern Horizons 3). Arrow keys and Enter work, like Scryfall. Picking a card opens screen 4; picking a set opens screen 5.</p>
+  </section>
+
+  <section>
+    <div class="label">3 · Color page</div>
+    <h2>100 random red cards</h2>
+    <div class="screen">
+      <div class="bar"><span class="logo">⟡ Similar Cards</span><div class="search">Search cards or sets…</div></div>
+      <div class="toolbar"><div class="pip" style="background:var(--R);width:34px;height:34px">R</div><strong>Random red cards</strong><span class="btn" style="margin-left:auto">↻ Shuffle</span></div>
+      <div class="grid">
+        <div class="card">Shock</div><div class="card">Ragavan</div><div class="card">Goblin Guide</div><div class="card">Fable of…</div>
+        <div class="card">Fury</div><div class="card">Lava Dart</div><div class="card">Pyrokinesis</div><div class="card">…</div>
+      </div>
+    </div>
+    <p class="note"><b>Guess:</b> "red" means cards that are red, including multicolor red ones (the same rule as the set filter). A Shuffle button loads a fresh 100. Only real game cards (no tokens), each card once.</p>
+  </section>
+
+  <section>
+    <div class="label">4 · Card page</div>
+    <h2>Card, its printings, and similar cards</h2>
+    <div class="screen">
+      <div class="bar"><span class="logo">⟡ Similar Cards</span><div class="search">Search cards or sets…</div></div>
+      <div class="detail">
+        <div class="bigcard"></div>
+        <div>
+          <h2 style="font-size:22px">Lightning Bolt <span style="color:var(--muted);font-weight:400">{R}</span></h2>
+          <div class="kv"><span>Type</span><span>Instant</span><span>Set</span><span>Secret Lair · #123 · Rare</span><span>Artist</span><span>Christopher Rush</span></div>
+          <div class="oracle">Lightning Bolt deals 3 damage to any target.</div>
+          <h3>Printings (74)</h3>
+          <div class="printings"><div class="card sel">SLD 2026</div><div class="card">2X2</div><div class="card">CLB</div><div class="card">STA</div><div class="card">M11</div><div class="card">…</div></div>
+        </div>
+      </div>
+      <h3>Similar cards</h3>
+      <div class="grid"><div class="card">Lightning Strike</div><div class="card">Twin Bolt</div><div class="card">Shock</div><div class="card">Judgment Bolt</div><div class="card">…</div></div>
+    </div>
+    <p class="note"><b>Guess:</b> printings as a horizontal strip. Clicking one swaps the big image and set line, and the page URL changes to that printing. 12 similar cards below.</p>
+  </section>
+
+  <section>
+    <div class="label">5 · Set page</div>
+    <h2>A set's cards with the color filter</h2>
+    <div class="screen">
+      <div class="bar"><span class="logo">⟡ Similar Cards</span><div class="search">Search cards or sets…</div></div>
+      <div class="toolbar"><div class="seticon"></div><strong>Modern Horizons 3</strong><span style="color:var(--muted)">MH3 · June 2024</span>
+        <span style="margin-left:auto"></span><span class="chip">W</span><span class="chip">U</span><span class="chip">B</span><span class="chip on">R</span><span class="chip on">G</span><span class="chip">C</span></div>
+      <div class="grid">
+        <div class="card">#116</div><div class="card">#117</div><div class="card">#118</div><div class="card">#152</div><div class="card">#153</div><div class="card">…</div>
+      </div>
+    </div>
+    <p class="note"><b>Guess:</b> color chips toggle on and off and combine as "any of" (the API rule you approved). No chips selected means the whole set.</p>
+  </section>
+
+  <div class="q"><b>Open questions:</b> Does this match what you pictured, especially the combined search dropdown and the printings strip? Do you want a light or dark look? Images will be grey until <code>make run-image</code> has run; should the frontend fall back to Scryfall's image links meanwhile?</div>
+</main>
+</body>
+</html>

@@ -15,7 +15,8 @@ candidates AS (
     SELECT DISTINCT ON (COALESCE(c.oracle_id, c.id))
            c.id, c.name, c.mana_cost, c.type_line, c.colors, c.rarity, c.set_code,
            CASE WHEN EXISTS (SELECT 1 FROM card_images ci WHERE ci.card_id = c.id)
-                THEN '/cards/' || c.id || '/image' END AS image_url,
+                THEN '/cards/' || c.id || '/image'
+                ELSE c.image_uris->>'normal' END AS image_url,
            c.embedding <=> ref.embedding AS distance
     FROM cards c
     CROSS JOIN ref

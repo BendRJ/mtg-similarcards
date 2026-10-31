@@ -35,6 +35,7 @@ class CardDetail(CardSummary):
     released_at: datetime.date | None = None
     artist: str | None = None
     legalities: dict[str, str] | None = None
+    image_url_large: str | None = None
 
 
 class Printing(BaseModel):

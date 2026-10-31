@@ -8,7 +8,8 @@ services:
       # HOST_PORT moves only the host side. The container side and API_PORT below are driven by
       # the SAME variable on purpose: Docker forwards to the right-hand port, so uvicorn must
       # listen exactly there. One variable makes them unable to disagree.
-      - "${HOST_PORT:-8000}:${API_PORT:-8000}"
+      # Bound to 127.0.0.1 so the API is not reachable from the local network; the frontend proxies to it.
+      - "127.0.0.1:${HOST_PORT:-8000}:${API_PORT:-8000}"
     environment:
       DATABASE_URL: "postgresql://${POSTGRES_USER:-mtguser}:${POSTGRES_PASSWORD:-mtgpassword}@postgres:5432/${POSTGRES_DB:-mtgcards_db}"
       # API_HOST is set to 0.0.0.0 by the Dockerfile — every container needs it, so the
@@ -26,6 +27,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  frontend:
+    build: { context: ./frontend }
+    container_name: mtg-similarcards-frontend
+    ports: ["127.0.0.1:${FRONTEND_PORT:-8080}:80"]
+    environment:
+      API_UPSTREAM: app:${API_PORT:-8000}
+    depends_on: [app]
 
   postgres:
     image: pgvector/pgvector:pg16

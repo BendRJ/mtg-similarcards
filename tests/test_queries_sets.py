@@ -4,6 +4,8 @@ SQL tests for the set queries, against a real Postgres (skipped without one).
 
 import unittest
 
+from psycopg.types.json import Jsonb
+
 from app.backend import queries
 from tests.db_fixtures import DBTestCase, insert_card, insert_set
 
@@ -36,6 +38,10 @@ class TestSetCardsQuery(DBTestCase):
         insert_card(self.cur, "show", "Bolt", oracle_id="o1", set_code="mh3", collector_number="300")
         insert_card(self.cur, "reg", "Bolt", oracle_id="o1", set_code="mh3", collector_number="12")
         self.assertEqual(self.ids("mh3"), ["reg"])
+
+    def test_set_cards_use_scryfall_fallback(self):
+        insert_card(self.cur, "a", "A", set_code="mh3", image_uris=Jsonb({"normal": "https://x/a.jpg"}))
+        self.assertEqual(queries.get_set_cards(self.cur, "mh3", None)[0]["image_url"], "https://x/a.jpg")
 
     def test_set_cards_case_insensitive(self):
         insert_card(self.cur, "a", "A", set_code="mh3")

@@ -4,6 +4,8 @@ SQL tests for the card queries, against a real Postgres (skipped without one).
 
 import unittest
 
+from psycopg.types.json import Jsonb
+
 from app.backend import queries
 from tests.db_fixtures import DBTestCase, insert_card, insert_image, vec
 
@@ -23,6 +25,23 @@ class TestCardQueries(DBTestCase):
         insert_card(self.cur, "a1", "Bolt")
         insert_image(self.cur, "a1")
         self.assertEqual(queries.get_card(self.cur, "a1")["image_url"], "/cards/a1/image")
+
+    def test_image_url_falls_back_to_scryfall_normal(self):
+        insert_card(self.cur, "a1", "Bolt", image_uris=Jsonb({"normal": "https://cards.scryfall.io/n/a1.jpg"}))
+        self.assertEqual(queries.get_card(self.cur, "a1")["image_url"], "https://cards.scryfall.io/n/a1.jpg")
+
+    def test_stored_image_wins_over_scryfall(self):
+        insert_card(self.cur, "a1", "Bolt", image_uris=Jsonb({"normal": "https://x/a1.jpg"}))
+        insert_image(self.cur, "a1")
+        self.assertEqual(queries.get_card(self.cur, "a1")["image_url"], "/cards/a1/image")
+
+    def test_get_card_returns_large_image_url(self):
+        insert_card(self.cur, "a1", "Bolt", image_uris=Jsonb({"normal": "https://x/n.jpg", "large": "https://x/l.jpg"}))
+        self.assertEqual(queries.get_card(self.cur, "a1")["image_url_large"], "https://x/l.jpg")
+
+    def test_large_image_url_none_without_image_uris(self):
+        insert_card(self.cur, "a1", "Bolt")
+        self.assertIsNone(queries.get_card(self.cur, "a1")["image_url_large"])
 
     def test_printings_newest_first_including_self(self):
         insert_card(self.cur, "old", "Bolt", oracle_id="o1", released_at="1993-08-05")
@@ -96,6 +115,12 @@ class TestAutocompleteQuery(DBTestCase):
 
 
 class TestSimilarQuery(DBTestCase):
+    def test_similar_uses_scryfall_fallback(self):
+        insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1))
+        insert_card(self.cur, "s", "Shock", oracle_id="o2", embedding=vec(1),
+                    image_uris=Jsonb({"normal": "https://x/s.jpg"}))
+        self.assertEqual(queries.similar_cards(self.cur, "ref", 5)[0]["image_url"], "https://x/s.jpg")
+
     def test_similar_excludes_reprints_and_dedupes(self):
         insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1, 0))
         insert_card(self.cur, "ref2", "Bolt", oracle_id="o1", embedding=vec(1, 0))
@@ -144,6 +169,32 @@ class TestSimilarQuery(DBTestCase):
     def test_similar_unknown_id_is_none_not_random_cards(self):
         insert_card(self.cur, "s", "Shock", oracle_id="o2", embedding=vec(1))
         self.assertIsNone(queries.similar_cards(self.cur, "does-not-exist", 10))
+
+
+class TestRandomQuery(DBTestCase):
+    def test_random_any_of_colors_one_per_card_playable_only(self):
+        insert_card(self.cur, "r_old", "Shock", oracle_id="o1", colors=["R"], released_at="2010-01-01")
+        insert_card(self.cur, "r_new", "Shock", oracle_id="o1", colors=["R"], released_at="2025-01-01")
+        insert_card(self.cur, "rg", "Gruul", oracle_id="o2", colors=["R", "G"])
+        insert_card(self.cur, "u", "Blue", oracle_id="o3", colors=["U"])
+        insert_card(self.cur, "tok", "Goblin", oracle_id="o4", colors=["R"], layout="token")
+        self.assertEqual({c["id"] for c in queries.random_cards(self.cur, ["R"], 100)}, {"r_new", "rg"})
+
+    def test_random_colorless(self):
+        insert_card(self.cur, "c", "Sol Ring", oracle_id="o1", colors=[])
+        insert_card(self.cur, "n", "Null", oracle_id="o2", colors=None)
+        self.assertEqual([c["id"] for c in queries.random_cards(self.cur, ["C"], 100)], ["c"])
+
+    def test_random_mixed_colored_and_colorless(self):
+        insert_card(self.cur, "r", "Shock", oracle_id="o1", colors=["R"])
+        insert_card(self.cur, "c", "Sol Ring", oracle_id="o2", colors=[])
+        insert_card(self.cur, "u", "Blue", oracle_id="o3", colors=["U"])
+        self.assertEqual({c["id"] for c in queries.random_cards(self.cur, ["R", "C"], 100)}, {"r", "c"})
+
+    def test_random_respects_limit(self):
+        for i in range(5):
+            insert_card(self.cur, f"r{i}", f"R{i}", oracle_id=f"o{i}", colors=["R"])
+        self.assertEqual(len(queries.random_cards(self.cur, ["R"], 3)), 3)
 
 
 class TestCardImageQuery(DBTestCase):

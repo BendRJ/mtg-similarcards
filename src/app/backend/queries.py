@@ -36,10 +36,12 @@ COLLECTOR_ORDER: LiteralString = (
     "c.collector_number"
 )
 
-# Checks existence only; the image bytes are fetched by get_card_image alone.
+# A stored image wins (existence check only; the bytes are fetched by get_card_image alone).
+# Otherwise fall back to the Scryfall link, or NULL when the card has none.
 IMAGE_URL: LiteralString = """
     CASE WHEN EXISTS (SELECT 1 FROM card_images ci WHERE ci.card_id = c.id)
-         THEN '/cards/' || c.id || '/image' END AS image_url"""
+         THEN '/cards/' || c.id || '/image'
+         ELSE c.image_uris->>'normal' END AS image_url"""
 
 SUMMARY_COLUMNS: LiteralString = (
     "c.id, c.name, c.mana_cost, c.type_line, c.colors, c.rarity, c.set_code, " + IMAGE_URL
@@ -48,11 +50,28 @@ SUMMARY_COLUMNS: LiteralString = (
 DETAIL_COLUMNS: LiteralString = SUMMARY_COLUMNS + """,
     c.oracle_id, c.cmc, c.oracle_text, c.flavor_text, c.power, c.toughness, c.loyalty,
     c.keywords, c.color_identity, c.set_name, c.collector_number, c.released_at,
-    c.artist, c.legalities"""
+    c.artist, c.legalities, c.image_uris->>'large' AS image_url_large"""
 
 PRINTING_COLUMNS: LiteralString = (
     "c.id, c.set_code, c.set_name, c.collector_number, c.released_at, c.rarity, " + IMAGE_URL
 )
+
+
+# Any-of color filter shared by set pages and random cards. Parameters come from
+# color_params. "C" means colorless; NULL colors (double-faced) never match a filter.
+COLOR_FILTER: LiteralString = (
+    "%(filtered)s IS FALSE OR c.colors && %(colored)s::text[] "
+    "OR (%(colorless)s AND c.colors = '{}')"
+)
+
+
+def color_params(colors: list[str] | None) -> dict[str, Any]:
+    """Bound parameters for COLOR_FILTER. None means no filter."""
+    return {
+        "filtered": colors is not None,
+        "colored": [c for c in colors if c != "C"] if colors is not None else None,
+        "colorless": colors is not None and "C" in colors,
+    }
 
 
 def escape_like(text: str) -> str:
@@ -159,8 +178,6 @@ def get_set_cards(cur: Cursor, set_code: str, colors: list[str] | None) -> list[
     colors keeps cards having any of the given colors, "C" meaning colorless.
     None means no filter. Cards with NULL colors (double-faced) never match a filter.
     """
-    colored = [c for c in colors if c != "C"] if colors is not None else None
-    colorless = colors is not None and "C" in colors
     cur.execute(
         f"""
         SELECT id, name, mana_cost, type_line, colors, rarity, set_code, image_url
@@ -170,14 +187,33 @@ def get_set_cards(cur: Cursor, set_code: str, colors: list[str] | None) -> list[
                    c.collector_number
             FROM cards c
             WHERE lower(c.set_code) = lower(%(set_code)s)
-              AND (%(filtered)s IS FALSE
-                   OR c.colors && %(colored)s::text[]
-                   OR (%(colorless)s AND c.colors = '{{}}'))
+              AND ({COLOR_FILTER})
             ORDER BY {CARD_KEY}, {COLLECTOR_ORDER}
         ) t
         ORDER BY t.collector_num NULLS LAST, t.collector_number
         """,
-        {"set_code": set_code, "filtered": colors is not None,
-         "colored": colored, "colorless": colorless},
+        {"set_code": set_code, **color_params(colors)},
+    )
+    return cur.fetchall()
+
+
+def random_cards(cur: Cursor, colors: list[str], limit: int) -> list[dict[str, Any]]:
+    """Random playable cards having any of the given colors ("C" = colorless).
+
+    One per card (its most recent printing), picked uniformly among the cards.
+    """
+    cur.execute(
+        f"""
+        SELECT id, name, mana_cost, type_line, colors, rarity, set_code, image_url
+        FROM (
+            SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS}
+            FROM cards c
+            WHERE {PLAYABLE} AND ({COLOR_FILTER})
+            ORDER BY {CARD_KEY}, c.released_at DESC NULLS LAST, {COLLECTOR_ORDER}
+        ) t
+        ORDER BY random()
+        LIMIT %(limit)s
+        """,
+        {**color_params(colors), "limit": limit},
     )
     return cur.fetchall()
