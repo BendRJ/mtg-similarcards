@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.backend import queries
 from app.backend.db import get_db_cursor
-from app.backend.models import CardDetail, CardSummary, Printing
+from app.backend.models import CardDetail, CardSummary, Printing, SimilarCard
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
@@ -35,3 +35,17 @@ def get_printings(card_id: str, cur: queries.Cursor = Depends(get_db_cursor)):
     if not printings:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Card not found.")
     return printings
+
+
+@router.get("/{card_id}/similar", response_model=list[SimilarCard],
+            description="Most similar other cards by rules text, one entry per card, closest first.")
+def get_similar(card_id: str,
+                limit: int = Query(12, ge=1, le=50),
+                cur: queries.Cursor = Depends(get_db_cursor)):
+    if queries.get_card(cur, card_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Card not found.")
+    similar = queries.similar_cards(cur, card_id, limit)
+    if similar is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="No embedding for this card yet.")
+    return similar

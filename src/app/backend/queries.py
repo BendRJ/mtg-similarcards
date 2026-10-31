@@ -6,11 +6,15 @@ response models in app.backend.models. Column lists are always explicit, so the
 interpolated into SQL; every value is a bound parameter.
 """
 
-from typing import Any, LiteralString
+from pathlib import Path
+from typing import Any, LiteralString, cast
 
 import psycopg
 
 Cursor = psycopg.Cursor[dict[str, Any]]
+
+SQL_DIR = Path(__file__).parents[2] / "database" / "sql" / "queries"
+SIMILAR_CARDS_SQL = cast(LiteralString, (SQL_DIR / "similar_cards.sql").read_text())
 
 # One card across all its printings. Scryfall omits oracle_id on a few layouts
 # (e.g. reversible_card); such a printing counts as its own card.
@@ -89,4 +93,25 @@ def get_printings(cur: Cursor, card_id: str) -> list[dict[str, Any]]:
         """,
         {"card_id": card_id},
     )
+    return cur.fetchall()
+
+
+def similar_cards(cur: Cursor, card_id: str, limit: int) -> list[dict[str, Any]] | None:
+    """Most similar other cards, closest first.
+
+    None when no printing of the card has an embedding (including an unknown id),
+    so callers can tell that apart from "embedded, but nothing else to compare".
+    """
+    cur.execute(
+        f"""
+        SELECT 1 FROM cards c
+        WHERE {CARD_KEY} = (SELECT COALESCE(oracle_id, id) FROM cards WHERE id = %(card_id)s)
+          AND c.embedding IS NOT NULL
+        LIMIT 1
+        """,
+        {"card_id": card_id},
+    )
+    if cur.fetchone() is None:
+        return None
+    cur.execute(SIMILAR_CARDS_SQL, {"card_id": card_id, "limit": limit})
     return cur.fetchall()

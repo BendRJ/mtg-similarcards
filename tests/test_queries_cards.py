@@ -65,5 +65,42 @@ class TestAutocompleteQuery(DBTestCase):
         self.assertEqual(len(queries.autocomplete_cards(self.cur, "gob", 3)), 3)
 
 
+class TestSimilarQuery(DBTestCase):
+    def test_similar_excludes_reprints_and_dedupes(self):
+        insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1, 0))
+        insert_card(self.cur, "ref2", "Bolt", oracle_id="o1", embedding=vec(1, 0))
+        insert_card(self.cur, "s_old", "Shock", oracle_id="o2", released_at="2010-01-01", embedding=vec(1, 0.1))
+        insert_card(self.cur, "s_new", "Shock", oracle_id="o2", released_at="2025-01-01", embedding=vec(1, 0.1))
+        insert_card(self.cur, "far", "Forest", oracle_id="o3", embedding=vec(0, 1))
+        result = queries.similar_cards(self.cur, "ref", 10)
+        self.assertEqual([c["id"] for c in result], ["s_new", "far"])
+        self.assertLess(result[0]["distance"], result[1]["distance"])
+        self.assertNotIn("embedding", result[0])
+
+    def test_similar_uses_embedding_of_another_printing(self):
+        insert_card(self.cur, "old", "Bolt", oracle_id="o1", embedding=None)
+        insert_card(self.cur, "new", "Bolt", oracle_id="o1", embedding=vec(1))
+        insert_card(self.cur, "s", "Shock", oracle_id="o2", embedding=vec(1))
+        self.assertEqual([c["id"] for c in queries.similar_cards(self.cur, "old", 10)], ["s"])
+
+    def test_similar_respects_limit(self):
+        insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1))
+        for i in range(3):
+            insert_card(self.cur, f"s{i}", f"Shock {i}", oracle_id=f"o{i + 2}", embedding=vec(1, i))
+        self.assertEqual(len(queries.similar_cards(self.cur, "ref", 2)), 2)
+
+    def test_similar_empty_when_no_other_cards(self):
+        insert_card(self.cur, "a", "Bolt", oracle_id="o1", embedding=vec(1))
+        self.assertEqual(queries.similar_cards(self.cur, "a", 10), [])
+
+    def test_similar_none_without_any_embedding(self):
+        insert_card(self.cur, "a", "Bolt", oracle_id="o1", embedding=None)
+        self.assertIsNone(queries.similar_cards(self.cur, "a", 10))
+
+    def test_similar_unknown_id_is_none_not_random_cards(self):
+        insert_card(self.cur, "s", "Shock", oracle_id="o2", embedding=vec(1))
+        self.assertIsNone(queries.similar_cards(self.cur, "does-not-exist", 10))
+
+
 if __name__ == "__main__":
     unittest.main()

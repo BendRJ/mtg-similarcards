@@ -54,5 +54,35 @@ class TestAutocompleteRoute(CardRoutesTestCase):
         self.assertEqual(self.client.get("/cards/autocomplete?q=bo&limit=26").status_code, 422)
 
 
+class TestSimilarRoute(CardRoutesTestCase):
+    @patch("app.backend.queries.similar_cards")
+    @patch("app.backend.queries.get_card", return_value=None)
+    def test_similar_unknown_card_404(self, _, similar):
+        r = self.client.get("/cards/nope/similar")
+        self.assertEqual(r.status_code, 404)
+        self.assertEqual(r.json()["detail"], "Card not found.")
+        similar.assert_not_called()
+
+    @patch("app.backend.queries.similar_cards", return_value=None)
+    @patch("app.backend.queries.get_card", return_value={"id": "a1", "name": "Bolt"})
+    def test_similar_no_embedding_404_with_own_message(self, *_):
+        r = self.client.get("/cards/a1/similar")
+        self.assertEqual(r.status_code, 404)
+        self.assertNotEqual(r.json()["detail"], "Card not found.")
+
+    @patch("app.backend.queries.similar_cards",
+           return_value=[{"id": "s1", "name": "Shock", "distance": 0.1}])
+    @patch("app.backend.queries.get_card", return_value={"id": "a1", "name": "Bolt"})
+    def test_similar_default_limit_12(self, _, similar):
+        r = self.client.get("/cards/a1/similar")
+        self.assertEqual(r.json(), [{"id": "s1", "name": "Shock", "mana_cost": None, "type_line": None,
+                                     "colors": None, "rarity": None, "set_code": None,
+                                     "image_url": None, "distance": 0.1}])
+        similar.assert_called_once_with(unittest.mock.ANY, "a1", 12)
+
+    def test_similar_limit_over_max_422(self):
+        self.assertEqual(self.client.get("/cards/a1/similar?limit=51").status_code, 422)
+
+
 if __name__ == "__main__":
     unittest.main()
