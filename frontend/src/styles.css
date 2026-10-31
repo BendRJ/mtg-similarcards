@@ -3,13 +3,14 @@
   --W: #f5ecc8; --U: #a9d3f0; --B: #b9aea8; --R: #f0a38b; --G: #9fd4a8; --C: #d6d6d6;
   --card-ratio: 63 / 88;
 }
+/* Dark background is kept a step above black so black-bordered card images stand out. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #16161a; --panel: #202026; --ink: #ececf1; --muted: #9a9aa5; --line: #33333c; --accent: #9b87ff;
+    --bg: #2a2a31; --panel: #34343c; --ink: #ececf1; --muted: #a3a3ae; --line: #4a4a55; --accent: #9b87ff;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #16161a; --panel: #202026; --ink: #ececf1; --muted: #9a9aa5; --line: #33333c; --accent: #9b87ff;
+  --bg: #2a2a31; --panel: #34343c; --ink: #ececf1; --muted: #a3a3ae; --line: #4a4a55; --accent: #9b87ff;
 }
 
 * { box-sizing: border-box; }
