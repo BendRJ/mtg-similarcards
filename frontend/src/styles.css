@@ -64,3 +64,15 @@ a { color: var(--accent); }
 
 .error-state { text-align: center; padding: 32px 0; color: var(--muted); }
 .error-state .btn { margin-left: 0; }
+
+.muted { color: var(--muted); }
+.detail { display: grid; grid-template-columns: 260px 1fr; gap: 24px; margin-bottom: 16px; }
+@media (max-width: 720px) { .detail { grid-template-columns: 1fr; } }
+.detail-image { width: 100%; aspect-ratio: var(--card-ratio); border-radius: 12px; border: 1px solid var(--line); object-fit: cover; background: linear-gradient(160deg, var(--line), var(--bg)); }
+.detail-text h1 { font-size: 22px; margin: 0 0 8px; }
+.detail-text p { margin: 0 0 8px; }
+.mana { color: var(--muted); font-size: 16px; font-weight: normal; }
+.oracle { white-space: pre-line; }
+.printings { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin: 6px 0 18px; }
+.printing { flex: none; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--ink); text-decoration: none; font-size: 12px; }
+.printing.sel { outline: 2px solid var(--accent); }
