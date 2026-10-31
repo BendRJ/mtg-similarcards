@@ -177,6 +177,12 @@ class TestRandomQuery(DBTestCase):
         insert_card(self.cur, "n", "Null", oracle_id="o2", colors=None)
         self.assertEqual([c["id"] for c in queries.random_cards(self.cur, ["C"], 100)], ["c"])
 
+    def test_random_mixed_colored_and_colorless(self):
+        insert_card(self.cur, "r", "Shock", oracle_id="o1", colors=["R"])
+        insert_card(self.cur, "c", "Sol Ring", oracle_id="o2", colors=[])
+        insert_card(self.cur, "u", "Blue", oracle_id="o3", colors=["U"])
+        self.assertEqual({c["id"] for c in queries.random_cards(self.cur, ["R", "C"], 100)}, {"r", "c"})
+
     def test_random_respects_limit(self):
         for i in range(5):
             insert_card(self.cur, f"r{i}", f"R{i}", oracle_id=f"o{i}", colors=["R"])

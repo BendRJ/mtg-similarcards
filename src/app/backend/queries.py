@@ -204,7 +204,8 @@ def random_cards(cur: Cursor, colors: list[str], limit: int) -> list[dict[str, A
     """
     cur.execute(
         f"""
-        SELECT * FROM (
+        SELECT id, name, mana_cost, type_line, colors, rarity, set_code, image_url
+        FROM (
             SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS}
             FROM cards c
             WHERE {PLAYABLE} AND ({COLOR_FILTER})

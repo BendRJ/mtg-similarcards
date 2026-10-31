@@ -33,6 +33,11 @@ class TestRandomRoute(CardRoutesTestCase):
         self.assertEqual(response.status_code, 200)
         random_cards.assert_called_once_with(ANY, ["R"], 100)
 
+    @patch("app.backend.queries.random_cards", return_value=[])
+    def test_random_passes_multiple_colors_and_limit(self, random_cards):
+        self.assertEqual(self.client.get("/cards/random?colors=R,G&limit=5").status_code, 200)
+        random_cards.assert_called_once_with(ANY, ["R", "G"], 5)
+
     def test_random_requires_colors(self):
         self.assertEqual(self.client.get("/cards/random").status_code, 422)
 
