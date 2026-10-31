@@ -54,10 +54,28 @@ class TestAutocompleteQuery(DBTestCase):
         self.assertEqual(queries.autocomplete_cards(self.cur, "%_", 10), [])
         self.assertEqual(queries.autocomplete_cards(self.cur, "a\\", 10), [])
 
+    def test_autocomplete_matches_literal_underscore_in_name(self):
+        insert_card(self.cur, "u", "A_c", oracle_id="o1")
+        insert_card(self.cur, "b", "Abc", oracle_id="o2")
+        self.assertEqual([c["id"] for c in queries.autocomplete_cards(self.cur, "a_", 10)], ["u"])
+
+    def test_autocomplete_matches_literal_backslash_in_name(self):
+        insert_card(self.cur, "s", "A\\c", oracle_id="o1")
+        insert_card(self.cur, "b", "Abc", oracle_id="o2")
+        self.assertEqual([c["id"] for c in queries.autocomplete_cards(self.cur, "a\\", 10)], ["s"])
+
     def test_autocomplete_matches_literal_percent_in_name(self):
         insert_card(self.cur, "p", "100% Pure", oracle_id="o1")
         insert_card(self.cur, "q", "1000 Pure", oracle_id="o2")
         self.assertEqual([c["id"] for c in queries.autocomplete_cards(self.cur, "0%", 10)], ["p"])
+
+    def test_autocomplete_excludes_tokens_emblems_and_art_cards(self):
+        insert_card(self.cur, "t1", "Elemental", oracle_id="o1", layout="token")
+        insert_card(self.cur, "t2", "Elemental", oracle_id="o2", layout="double_faced_token")
+        insert_card(self.cur, "e", "Elemental Emblem", oracle_id="o3", layout="emblem")
+        insert_card(self.cur, "art", "Elemental Bond // Elemental Bond", oracle_id="o4", layout="art_series")
+        insert_card(self.cur, "real", "Elemental Bond", oracle_id="o5", layout="normal")
+        self.assertEqual([c["id"] for c in queries.autocomplete_cards(self.cur, "elemental", 10)], ["real"])
 
     def test_autocomplete_respects_limit(self):
         for i in range(5):
@@ -82,6 +100,13 @@ class TestSimilarQuery(DBTestCase):
         insert_card(self.cur, "new", "Bolt", oracle_id="o1", embedding=vec(1))
         insert_card(self.cur, "s", "Shock", oracle_id="o2", embedding=vec(1))
         self.assertEqual([c["id"] for c in queries.similar_cards(self.cur, "old", 10)], ["s"])
+
+    def test_similar_excludes_tokens_emblems_and_art_cards(self):
+        insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1))
+        for i, layout in enumerate(["token", "double_faced_token", "emblem", "art_series"]):
+            insert_card(self.cur, layout, layout, oracle_id=f"x{i}", layout=layout, embedding=vec(1))
+        insert_card(self.cur, "real", "Shock", oracle_id="o2", layout="normal", embedding=vec(1, 0.5))
+        self.assertEqual([c["id"] for c in queries.similar_cards(self.cur, "ref", 10)], ["real"])
 
     def test_similar_respects_limit(self):
         insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1))

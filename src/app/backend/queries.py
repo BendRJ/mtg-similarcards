@@ -20,6 +20,13 @@ SIMILAR_CARDS_SQL = cast(LiteralString, (SQL_DIR / "similar_cards.sql").read_tex
 # (e.g. reversible_card); such a printing counts as its own card.
 CARD_KEY: LiteralString = "COALESCE(c.oracle_id, c.id)"
 
+# Tokens, emblems and art-series cards aren't cards a player looks for, and many
+# share a name ("Elemental") under different oracle_ids. Kept out of search and
+# similarity; still reachable by id and on set pages. NULL-safe: a NULL layout stays in.
+PLAYABLE: LiteralString = (
+    "COALESCE(c.layout, '') NOT IN ('token', 'double_faced_token', 'emblem', 'art_series')"
+)
+
 # Numeric part first so "2" < "10", then the raw string so "10" < "10a".
 COLLECTOR_ORDER: LiteralString = (
     "NULLIF(regexp_replace(c.collector_number, '\\D', '', 'g'), '')::numeric NULLS LAST, "
@@ -65,7 +72,7 @@ def autocomplete_cards(cur: Cursor, query: str, limit: int) -> list[dict[str, An
         SELECT * FROM (
             SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS}
             FROM cards c
-            WHERE c.name ILIKE %(contains)s
+            WHERE c.name ILIKE %(contains)s AND {PLAYABLE}
             ORDER BY {CARD_KEY}, c.released_at DESC NULLS LAST, {COLLECTOR_ORDER}
         ) t
         ORDER BY (t.name ILIKE %(prefix)s) DESC, t.name
