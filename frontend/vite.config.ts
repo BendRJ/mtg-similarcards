@@ -14,5 +14,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["src/test/setup.ts"],
+    // Vitest empties CSS imports by default; styles.test.ts reads styles.css as raw text.
+    css: { include: [/styles\.css/] },
   },
 });

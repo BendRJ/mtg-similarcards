@@ -32,7 +32,7 @@ function ColorCards({ color }: { color: Color }) {
       </div>
       {status === "loading" && <Loading />}
       {status === "error" && error && <ErrorState error={error} onRetry={reload} />}
-      {status === "ok" && data && <CardGrid cards={data} className="grid-large" />}
+      {status === "ok" && data && <CardGrid cards={data} />}
     </Layout>
   );
 }

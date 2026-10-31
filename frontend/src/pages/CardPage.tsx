@@ -51,7 +51,7 @@ function CardView({ id }: { id: string }) {
       <h2>Similar cards</h2>
       {similar.status === "loading" && <Loading />}
       {similar.status === "error" && similar.error && <SimilarError error={similar.error} onRetry={similar.reload} />}
-      {similar.status === "ok" && similar.data && <CardGrid cards={similar.data} className="grid-large" />}
+      {similar.status === "ok" && similar.data && <CardGrid cards={similar.data} />}
     </Layout>
   );
 }

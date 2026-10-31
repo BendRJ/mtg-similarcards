@@ -73,10 +73,10 @@ describe("CardPage", () => {
     expect(img.getAttribute("src")).toBe("https://x/n.jpg");
   });
 
-  it("renders similar cards in the large grid", async () => {
+  it("renders similar cards in a card grid", async () => {
     const { container } = renderAt("/card/a1");
     await screen.findByText("Lightning Bolt");
-    expect(container.querySelector(".grid.grid-large")).not.toBeNull();
+    expect(container.querySelector(".grid")).not.toBeNull();
   });
 
   it("shows a hint when similar cards are unavailable but keeps the page", async () => {

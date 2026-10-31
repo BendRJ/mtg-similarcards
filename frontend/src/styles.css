@@ -58,8 +58,7 @@ a { color: var(--accent); }
 .btn { margin-left: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); padding: 7px 14px; font: inherit; cursor: pointer; }
 .btn:hover { border-color: var(--accent); }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 12px; }
-.grid.grid-large { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
 .tile { display: block; aspect-ratio: var(--card-ratio); border-radius: 7px; border: 1px solid var(--line); overflow: hidden; background: linear-gradient(160deg, var(--line), var(--bg)); color: var(--ink); text-decoration: none; }
 .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tile-placeholder { height: 100%; display: flex; align-items: flex-end; padding: 6px; font-size: 12px; }
