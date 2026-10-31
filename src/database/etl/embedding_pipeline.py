@@ -8,8 +8,9 @@ import logging
 import time
 
 from app.config.logging_config import setup_logging
-from app.services.vector_service import build_card_text, generate_embeddings
+from app.services.vector_service import generate_embeddings
 from database.db import get_cursor
+from utils.vector_helper import build_card_text
 
 logger = logging.getLogger(__name__)
 
