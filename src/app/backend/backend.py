@@ -1,20 +1,41 @@
-from fastapi import FastAPI, HTTPException, status
-from app.backend.utils.database import cards
+import logging
+import os
 
-app = FastAPI()
+import psycopg
+from fastapi import FastAPI, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-@app.get("/", name="Hello World", include_in_schema=False)
-def home():
-    return {"hello":"World!"}
+logger = logging.getLogger(__name__)
 
-@app.get("/cards")
-def get_cards():
-    return cards
 
-@app.get("/cards/{card_id}", description="Endpoint for retrieving individual cards from Database.")
-def get_card(card_id: str):
-    for card in cards:
-        if card.get("id") == card_id:
-            return card
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND
-                        , detail="Card does not exist in DB or wrong ID provided.")
+def create_app(cors_origins: list[str]) -> FastAPI:
+    """Build the backend-for-frontend app. cors_origins is an explicit allow-list, never '*'."""
+    app = FastAPI(title="mtg-similarcards BFF")
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_methods=["GET"],
+    )
+
+    @app.exception_handler(psycopg.Error)
+    def database_error(request: Request, exc: psycopg.Error) -> JSONResponse:
+        # psycopg messages can echo connection details: log them, never return them.
+        logger.error("Database error on %s %s", request.method, request.url.path, exc_info=exc)
+        return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            content={"detail": "Database unavailable."})
+
+    @app.get("/", name="Hello World", include_in_schema=False)
+    def home():
+        return {"hello": "World!"}
+
+    return app
+
+
+def cors_origins_from_env() -> list[str]:
+    """Read CORS_ORIGINS, a comma-separated list, e.g. "http://localhost:5173". Unset means none."""
+    return [origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()]
+
+
+app = create_app(cors_origins_from_env())
