@@ -38,5 +38,21 @@ class TestCardDetailRoutes(CardRoutesTestCase):
         self.assertEqual(self.client.get("/cards/nope/printings").status_code, 404)
 
 
+class TestAutocompleteRoute(CardRoutesTestCase):
+    @patch("app.backend.queries.get_card", side_effect=AssertionError("matched as a card id"))
+    @patch("app.backend.queries.autocomplete_cards", return_value=[{"id": "a1", "name": "Bolt"}])
+    def test_autocomplete_not_shadowed_by_card_id(self, autocomplete, _):
+        r = self.client.get("/cards/autocomplete?q=bo")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()[0]["id"], "a1")
+        autocomplete.assert_called_once_with(unittest.mock.ANY, "bo", 10)
+
+    def test_autocomplete_q_too_short_422(self):
+        self.assertEqual(self.client.get("/cards/autocomplete?q=b").status_code, 422)
+
+    def test_autocomplete_limit_over_max_422(self):
+        self.assertEqual(self.client.get("/cards/autocomplete?q=bo&limit=26").status_code, 422)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -41,6 +41,37 @@ PRINTING_COLUMNS: LiteralString = (
 )
 
 
+def escape_like(text: str) -> str:
+    """Escape text for use inside an ILIKE pattern, so it matches literally.
+
+    Postgres LIKE/ILIKE use backslash as the default escape character.
+    """
+    # Backslash first, or it would double the escapes added for % and _.
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def autocomplete_cards(cur: Cursor, query: str, limit: int) -> list[dict[str, Any]]:
+    """Cards whose name contains query, one per card (its most recent printing).
+
+    Names starting with query rank first, then alphabetical.
+    """
+    escaped = escape_like(query)
+    cur.execute(
+        f"""
+        SELECT * FROM (
+            SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS}
+            FROM cards c
+            WHERE c.name ILIKE %(contains)s
+            ORDER BY {CARD_KEY}, c.released_at DESC NULLS LAST, {COLLECTOR_ORDER}
+        ) t
+        ORDER BY (t.name ILIKE %(prefix)s) DESC, t.name
+        LIMIT %(limit)s
+        """,
+        {"contains": f"%{escaped}%", "prefix": f"{escaped}%", "limit": limit},
+    )
+    return cur.fetchall()
+
+
 def get_card(cur: Cursor, card_id: str) -> dict[str, Any] | None:
     cur.execute(f"SELECT {DETAIL_COLUMNS} FROM cards c WHERE c.id = %(card_id)s",
                 {"card_id": card_id})

@@ -1,13 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.backend import queries
 from app.backend.db import get_db_cursor
-from app.backend.models import CardDetail, Printing
+from app.backend.models import CardDetail, CardSummary, Printing
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
 # Static paths like /cards/autocomplete must be declared above /{card_id},
 # or FastAPI matches them as a card id.
+
+
+@router.get("/autocomplete", response_model=list[CardSummary],
+            description="Name suggestions while typing, one entry per card.")
+def autocomplete(q: str = Query(min_length=2),
+                 limit: int = Query(10, ge=1, le=25),
+                 cur: queries.Cursor = Depends(get_db_cursor)):
+    return queries.autocomplete_cards(cur, q, limit)
 
 
 @router.get("/{card_id}", response_model=CardDetail,
