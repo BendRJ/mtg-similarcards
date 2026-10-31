@@ -67,8 +67,8 @@ a { color: var(--accent); }
 .error-state .btn { margin-left: 0; }
 
 .muted { color: var(--muted); }
-.detail { display: grid; grid-template-columns: minmax(0, 520px) 1fr; gap: 24px; margin-bottom: 16px; }
-@media (max-width: 720px) { .detail { grid-template-columns: minmax(0, 520px); } }
+.detail { display: grid; grid-template-columns: minmax(0, 520px) minmax(280px, 1fr); gap: 24px; margin-bottom: 16px; }
+@media (max-width: 859px) { .detail { grid-template-columns: minmax(0, 520px); } }
 .detail-image { width: 100%; aspect-ratio: var(--card-ratio); border-radius: 12px; border: 1px solid var(--line); object-fit: cover; background: linear-gradient(160deg, var(--line), var(--bg)); }
 .detail-text h1 { font-size: 22px; margin: 0 0 8px; }
 .detail-text p { margin: 0 0 8px; }
