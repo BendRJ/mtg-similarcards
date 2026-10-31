@@ -55,6 +55,7 @@ mtg-similarcards/
 │   │   └── generate_training_data.py   # Build fine-tuning training pairs
 │   └── utils/
 │       └── etl_helper.py               # Shared ETL helper functions
+├── frontend/                           # React + Vite web UI, served by nginx in Docker (Dockerfile, nginx.conf.template)
 ├── analytics/
 │   └── sets.sql                        # Ad-hoc analytics query
 ├── scripts/                            # Standalone test/preview scripts
@@ -65,7 +66,7 @@ mtg-similarcards/
 │   ├── superpowers/                    # Design specs and implementation plans
 │   └── runbooks/                       # Operational runbooks (database, run-pipeline)
 ├── Dockerfile                          # Application container image
-├── docker-compose.yml                  # PostgreSQL container configuration
+├── docker-compose.yml                  # App, frontend and PostgreSQL containers (ports on 127.0.0.1)
 ├── Makefile                            # db-up, run-main, test-connection, etc.
 ├── pyproject.toml                      # Project metadata and dependencies (uv)
 └── .pylintrc                           # Lint configuration
@@ -75,6 +76,7 @@ mtg-similarcards/
 
 - **Start here:** `src/app/main.py` — CLI entry point and argument parser.
 - **API:** `src/app/backend/backend.py` — the FastAPI app; `make dev` serves it with hot-reload, `/docs` lists every route.
+- **Frontend:** `frontend/` — `make frontend-dev` serves it with hot-reload on :5173; `make docker-run` serves it via nginx on :8080 (proxies `/cards` and `/sets` to the API).
 - **Pipeline orchestration:** `src/database/etl/pipeline.py` — `DataPipeline.run`.
 - **Database access:** `src/database/db.py` — connection helpers (`get_cursor`, `get_db_connection`, `test_connection`).
 - **Similarity query:** `src/database/sql/queries/similar_cards.sql`, called from `src/app/backend/queries.py`.

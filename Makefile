@@ -23,7 +23,7 @@ help:
 	@echo ""
 	@echo "  Docker:"
 	@echo "    docker-build        - Build Docker image"
-	@echo "    docker-run          - Serve the API on :8000 (Ctrl-C to stop; SETS='MH3 DMU' PIPE=1 to run ETL first)"
+	@echo "    docker-run          - Serve the API on :8000 and the frontend on :8080 (Ctrl-C to stop; SETS='MH3 DMU' PIPE=1 to run ETL first)"
 	@echo ""
 	@echo "  Frontend:"
 	@echo "    frontend-install    - Install frontend dependencies (npm ci in frontend/)"
@@ -120,10 +120,10 @@ docker-build:
 	docker-compose build app
 
 docker-run:
-	@echo "Running mtg-similarcards via docker-compose (API on http://127.0.0.1:8000, Ctrl-C to stop)..."
+	@echo "Running mtg-similarcards via docker-compose (API on http://127.0.0.1:8000, frontend on http://127.0.0.1:8080, Ctrl-C to stop)..."
 	SETS="$(SETS)" FORCE="$(FORCE)" RUN_PIPELINE="$(PIPE)" RELEASE_YEAR="$(RELEASE_YEAR)" \
 		$(if $(HOST_PORT),HOST_PORT="$(HOST_PORT)") \
-		$(if $(API_PORT),API_PORT="$(API_PORT)") docker-compose up app
+		$(if $(API_PORT),API_PORT="$(API_PORT)") docker-compose up app frontend
 
 # Frontend
 frontend-install:
