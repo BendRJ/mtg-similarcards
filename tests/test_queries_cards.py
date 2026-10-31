@@ -4,6 +4,8 @@ SQL tests for the card queries, against a real Postgres (skipped without one).
 
 import unittest
 
+from psycopg.types.json import Jsonb
+
 from app.backend import queries
 from tests.db_fixtures import DBTestCase, insert_card, insert_image, vec
 
@@ -21,6 +23,15 @@ class TestCardQueries(DBTestCase):
 
     def test_image_url_set_when_image_stored(self):
         insert_card(self.cur, "a1", "Bolt")
+        insert_image(self.cur, "a1")
+        self.assertEqual(queries.get_card(self.cur, "a1")["image_url"], "/cards/a1/image")
+
+    def test_image_url_falls_back_to_scryfall_normal(self):
+        insert_card(self.cur, "a1", "Bolt", image_uris=Jsonb({"normal": "https://cards.scryfall.io/n/a1.jpg"}))
+        self.assertEqual(queries.get_card(self.cur, "a1")["image_url"], "https://cards.scryfall.io/n/a1.jpg")
+
+    def test_stored_image_wins_over_scryfall(self):
+        insert_card(self.cur, "a1", "Bolt", image_uris=Jsonb({"normal": "https://x/a1.jpg"}))
         insert_image(self.cur, "a1")
         self.assertEqual(queries.get_card(self.cur, "a1")["image_url"], "/cards/a1/image")
 
@@ -96,6 +107,12 @@ class TestAutocompleteQuery(DBTestCase):
 
 
 class TestSimilarQuery(DBTestCase):
+    def test_similar_uses_scryfall_fallback(self):
+        insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1))
+        insert_card(self.cur, "s", "Shock", oracle_id="o2", embedding=vec(1),
+                    image_uris=Jsonb({"normal": "https://x/s.jpg"}))
+        self.assertEqual(queries.similar_cards(self.cur, "ref", 5)[0]["image_url"], "https://x/s.jpg")
+
     def test_similar_excludes_reprints_and_dedupes(self):
         insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1, 0))
         insert_card(self.cur, "ref2", "Bolt", oracle_id="o1", embedding=vec(1, 0))

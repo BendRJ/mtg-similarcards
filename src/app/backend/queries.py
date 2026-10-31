@@ -36,10 +36,12 @@ COLLECTOR_ORDER: LiteralString = (
     "c.collector_number"
 )
 
-# Checks existence only; the image bytes are fetched by get_card_image alone.
+# A stored image wins (existence check only; the bytes are fetched by get_card_image alone).
+# Otherwise fall back to the Scryfall link, or NULL when the card has none.
 IMAGE_URL: LiteralString = """
     CASE WHEN EXISTS (SELECT 1 FROM card_images ci WHERE ci.card_id = c.id)
-         THEN '/cards/' || c.id || '/image' END AS image_url"""
+         THEN '/cards/' || c.id || '/image'
+         ELSE c.image_uris->>'normal' END AS image_url"""
 
 SUMMARY_COLUMNS: LiteralString = (
     "c.id, c.name, c.mana_cost, c.type_line, c.colors, c.rarity, c.set_code, " + IMAGE_URL
