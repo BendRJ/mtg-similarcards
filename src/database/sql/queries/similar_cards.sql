@@ -22,6 +22,7 @@ candidates AS (
     WHERE c.embedding IS NOT NULL
       AND COALESCE(c.oracle_id, c.id) <> ref.card_key
       AND COALESCE(c.layout, '') NOT IN ('token', 'double_faced_token', 'emblem', 'art_series')
+      AND COALESCE(c.set_type, '') NOT IN ('token', 'memorabilia', 'minigame')
     ORDER BY COALESCE(c.oracle_id, c.id),
              c.released_at DESC NULLS LAST,
              NULLIF(regexp_replace(c.collector_number, '\D', '', 'g'), '')::numeric NULLS LAST,

@@ -77,6 +77,18 @@ class TestAutocompleteQuery(DBTestCase):
         insert_card(self.cur, "real", "Elemental Bond", oracle_id="o5", layout="normal")
         self.assertEqual([c["id"] for c in queries.autocomplete_cards(self.cur, "elemental", 10)], ["real"])
 
+    def test_autocomplete_excludes_token_memorabilia_and_minigame_sets(self):
+        insert_card(self.cur, "front", "Counterargument", oracle_id="o1",
+                    layout="front_card", set_type="memorabilia")
+        insert_card(self.cur, "tok", "Counter Token", oracle_id="o2", layout="normal", set_type="token")
+        insert_card(self.cur, "mini", "Counter Game", oracle_id="o3", layout="normal", set_type="minigame")
+        insert_card(self.cur, "real", "Counterspell", oracle_id="o4", layout="normal", set_type="masters")
+        self.assertEqual([c["id"] for c in queries.autocomplete_cards(self.cur, "counter", 10)], ["real"])
+
+    def test_autocomplete_keeps_cards_without_set_type(self):
+        insert_card(self.cur, "a", "Counterspell", oracle_id="o1", set_type=None)
+        self.assertEqual([c["id"] for c in queries.autocomplete_cards(self.cur, "counter", 10)], ["a"])
+
     def test_autocomplete_respects_limit(self):
         for i in range(5):
             insert_card(self.cur, f"c{i}", f"Goblin {i}", oracle_id=f"o{i}")
@@ -106,6 +118,13 @@ class TestSimilarQuery(DBTestCase):
         for i, layout in enumerate(["token", "double_faced_token", "emblem", "art_series"]):
             insert_card(self.cur, layout, layout, oracle_id=f"x{i}", layout=layout, embedding=vec(1))
         insert_card(self.cur, "real", "Shock", oracle_id="o2", layout="normal", embedding=vec(1, 0.5))
+        self.assertEqual([c["id"] for c in queries.similar_cards(self.cur, "ref", 10)], ["real"])
+
+    def test_similar_excludes_token_memorabilia_and_minigame_sets(self):
+        insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1))
+        for i, set_type in enumerate(["token", "memorabilia", "minigame"]):
+            insert_card(self.cur, set_type, set_type, oracle_id=f"x{i}", set_type=set_type, embedding=vec(1))
+        insert_card(self.cur, "real", "Shock", oracle_id="o2", set_type="core", embedding=vec(1, 0.5))
         self.assertEqual([c["id"] for c in queries.similar_cards(self.cur, "ref", 10)], ["real"])
 
     def test_similar_respects_limit(self):

@@ -20,11 +20,14 @@ SIMILAR_CARDS_SQL = cast(LiteralString, (SQL_DIR / "similar_cards.sql").read_tex
 # (e.g. reversible_card); such a printing counts as its own card.
 CARD_KEY: LiteralString = "COALESCE(c.oracle_id, c.id)"
 
-# Tokens, emblems and art-series cards aren't cards a player looks for, and many
-# share a name ("Elemental") under different oracle_ids. Kept out of search and
-# similarity; still reachable by id and on set pages. NULL-safe: a NULL layout stays in.
+# Tokens, emblems, art-series and Jumpstart front cards aren't cards a player looks
+# for, and many share a name ("Elemental") under different oracle_ids. Filtered by
+# layout and by set type, since some (e.g. front_card in memorabilia sets) only show
+# in the latter. Kept out of search and similarity; still reachable by id and on set
+# pages. NULL-safe: a NULL layout or set_type stays in.
 PLAYABLE: LiteralString = (
-    "COALESCE(c.layout, '') NOT IN ('token', 'double_faced_token', 'emblem', 'art_series')"
+    "COALESCE(c.layout, '') NOT IN ('token', 'double_faced_token', 'emblem', 'art_series') "
+    "AND COALESCE(c.set_type, '') NOT IN ('token', 'memorabilia', 'minigame')"
 )
 
 # Numeric part first so "2" < "10", then the raw string so "10" < "10a".
