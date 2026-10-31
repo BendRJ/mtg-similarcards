@@ -81,7 +81,7 @@ function SetView({ code }: { code: string }) {
       </div>
       {cards.status === "loading" && <Loading />}
       {cards.status === "error" && cards.error && <ErrorState error={cards.error} onRetry={cards.reload} />}
-      {cards.status === "ok" && cards.data && <CardGrid cards={cards.data} />}
+      {cards.status === "ok" && cards.data && <CardGrid cards={cards.data} className="grid-large" />}
     </Layout>
   );
 }

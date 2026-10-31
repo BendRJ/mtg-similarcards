@@ -36,6 +36,12 @@ beforeEach(() => {
 });
 
 describe("SetPage", () => {
+  it("renders the set's cards in the large grid", async () => {
+    const { container } = renderAt("/set/mh3");
+    await screen.findByText("Shock");
+    expect(container.querySelector(".grid.grid-large")).not.toBeNull();
+  });
+
   it("loads all cards and shows the header", async () => {
     renderAt("/set/mh3");
     expect(await screen.findByText("Shock")).toBeTruthy();
