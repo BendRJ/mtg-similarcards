@@ -35,6 +35,12 @@ describe("ColorPage", () => {
     expect(api.random).toHaveBeenCalledWith(["R"], 100, expect.any(AbortSignal));
   });
 
+  it("renders the random cards in the large grid", async () => {
+    const { container } = renderAt("/color/r");
+    await screen.findByText("Shock");
+    expect(container.querySelector(".grid.grid-large")).not.toBeNull();
+  });
+
   it("shows the color pip in the header", async () => {
     renderAt("/color/r");
     await screen.findByText("Shock");
