@@ -35,6 +35,13 @@ describe("ColorPage", () => {
     expect(api.random).toHaveBeenCalledWith(["R"], 100, expect.any(AbortSignal));
   });
 
+  it("shows the color pip in the header", async () => {
+    renderAt("/color/r");
+    await screen.findByText("Shock");
+    const pip = screen.getAllByRole("link", { name: "Random red cards" })[0];
+    expect(pip.textContent).toBe("R");
+  });
+
   it("shows not found for an unknown color without calling the API", () => {
     renderAt("/color/x");
     expect(screen.getByText("Page not found")).toBeTruthy();

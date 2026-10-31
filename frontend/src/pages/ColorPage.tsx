@@ -2,6 +2,7 @@ import { useParams } from "react-router";
 import { api } from "../api";
 import CardGrid from "../components/CardGrid";
 import ErrorState from "../components/ErrorState";
+import ColorPip from "../components/ColorPip";
 import Layout from "../components/Layout";
 import Loading from "../components/Loading";
 import { COLOR_NAMES, parseColor } from "../lib/colors";
@@ -23,6 +24,7 @@ function ColorCards({ color }: { color: Color }) {
   return (
     <Layout>
       <div className="toolbar">
+        <ColorPip color={color} size={34} />
         <h1>{title}</h1>
         <button type="button" className="btn" onClick={reload}>
           Shuffle

@@ -45,6 +45,7 @@ async function settle() {
 
 describe("SearchBar", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.useFakeTimers();
     // Testing Library only advances fake timers in its async helpers when a `jest` global exists.
     vi.stubGlobal("jest", { advanceTimersByTime: vi.advanceTimersByTime.bind(vi) });
@@ -158,5 +159,50 @@ describe("SearchBar", () => {
     await user.type(input, "mod");
     await settle();
     expect(screen.getAllByRole("option")).toHaveLength(1);
+  });
+
+  it("debounces: one autocomplete call 150 ms after the last keystroke", async () => {
+    const { user, input } = setup();
+    for (const ch of "mod") {
+      await user.type(input, ch);
+      if (ch !== "d") await act(async () => { await vi.advanceTimersByTimeAsync(40); });
+    }
+    expect(api.autocomplete).not.toHaveBeenCalled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(149); });
+    expect(api.autocomplete).not.toHaveBeenCalled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect(api.autocomplete).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(api.autocomplete).mock.calls[0][0]).toBe("mod");
+  });
+
+  it("Enter before results for the current query arrive does not open a row from the previous query", async () => {
+    vi.mocked(api.autocomplete).mockImplementation(async (q) =>
+      q === "modx" ? [card("x1", "Modx Card")] : [card("c1", "Modern Age")],
+    );
+    const { user, input } = setup();
+    await user.type(input, "mod");
+    await settle();
+    await user.type(input, "x");
+    await user.keyboard("{Enter}");
+    expect(screen.getByTestId("where").textContent).toBe("/");
+    await settle();
+    expect(screen.getByTestId("where").textContent).toBe("/card/x1");
+  });
+
+  it("sends the trimmed query to autocomplete", async () => {
+    const { user, input } = setup();
+    await user.type(input, "bo ");
+    await settle();
+    expect(vi.mocked(api.autocomplete).mock.calls[0][0]).toBe("bo");
+  });
+
+  it("shows the unreachable copy when both requests fail", async () => {
+    vi.mocked(api.autocomplete).mockRejectedValue(new Error("down"));
+    vi.mocked(api.sets).mockRejectedValue(new Error("down"));
+    const { user, input } = setup();
+    await user.type(input, "mod");
+    await settle();
+    expect(screen.getByText("Couldn't reach the card database. Try again.")).toBeTruthy();
+    expect(screen.queryByText("No cards or sets found")).toBeNull();
   });
 });

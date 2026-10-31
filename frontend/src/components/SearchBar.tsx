@@ -13,7 +13,7 @@ type SearchBarProps = {
   autoFocus?: boolean;
 };
 
-type Results = { cards: CardSummary[]; sets: SetSummary[] };
+type Results = { query: string; cards: CardSummary[]; sets: SetSummary[]; unreachable: boolean };
 
 type Row =
   | { kind: "card"; card: CardSummary }
@@ -34,27 +34,36 @@ export default function SearchBar({ size = "normal", autoFocus = false }: Search
   const [results, setResults] = useState<Results | null>(null);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const pendingEnter = useRef(false);
+  const trimmed = query.trim();
 
   useEffect(() => {
-    if (query.trim().length < MIN_CHARS) {
+    if (trimmed.length < MIN_CHARS) {
       setResults(null);
       return;
     }
     const controller = new AbortController();
     const timer = setTimeout(async () => {
+      let failures = 0;
       const [cards, allSets] = await Promise.all([
-        api.autocomplete(query, 10, controller.signal).catch((): CardSummary[] => []),
-        api.sets(controller.signal).catch((): SetSummary[] => []),
+        api.autocomplete(trimmed, 10, controller.signal).catch((): CardSummary[] => {
+          failures += 1;
+          return [];
+        }),
+        api.sets(controller.signal).catch((): SetSummary[] => {
+          failures += 1;
+          return [];
+        }),
       ]);
       if (controller.signal.aborted) return;
-      setResults({ cards, sets: matchSets(allSets, query) });
+      setResults({ query: trimmed, cards, sets: matchSets(allSets, trimmed), unreachable: failures === 2 });
       setActive(-1);
     }, DEBOUNCE_MS);
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query]);
+  }, [trimmed]);
 
   useEffect(() => {
     function onPointerDown(e: MouseEvent) {
@@ -64,28 +73,45 @@ export default function SearchBar({ size = "normal", autoFocus = false }: Search
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, []);
 
+  // Results can lag behind the typed text; only act on them (Enter, arrows) once they match it.
+  const fresh = results !== null && results.query === trimmed;
   const rows = results ? toRows(results) : [];
+  const actionableRows = fresh ? rows : [];
   const showDropdown = open && results !== null;
+
+  useEffect(() => {
+    if (pendingEnter.current && fresh && rows.length > 0) {
+      pendingEnter.current = false;
+      go(rows[0]);
+    }
+  });
 
   function go(row: Row) {
     navigate(row.kind === "card" ? `/card/${encodeURIComponent(row.card.id)}` : `/set/${encodeURIComponent(row.set.code)}`);
     setOpen(false);
     setQuery("");
     setActive(-1);
+    pendingEnter.current = false;
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Escape") {
       setOpen(false);
     } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-      if (rows.length === 0) return;
+      if (actionableRows.length === 0) return;
       e.preventDefault();
       setOpen(true);
+      const n = actionableRows.length;
       const step = e.key === "ArrowDown" ? 1 : -1;
-      setActive((a) => (a === -1 ? (step === 1 ? 0 : rows.length - 1) : (a + step + rows.length) % rows.length));
-    } else if (e.key === "Enter" && showDropdown && rows.length > 0) {
-      e.preventDefault();
-      go(rows[active >= 0 ? active : 0]);
+      setActive((a) => (a === -1 ? (step === 1 ? 0 : n - 1) : (a + step + n) % n));
+    } else if (e.key === "Enter") {
+      if (fresh && showDropdown && rows.length > 0) {
+        e.preventDefault();
+        go(rows[active >= 0 ? active : 0]);
+      } else if (!fresh && trimmed.length >= MIN_CHARS) {
+        e.preventDefault();
+        pendingEnter.current = true;
+      }
     }
   }
 
@@ -143,6 +169,8 @@ export default function SearchBar({ size = "normal", autoFocus = false }: Search
         onChange={(e) => {
           setQuery(e.target.value);
           setOpen(true);
+          setActive(-1);
+          pendingEnter.current = false;
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
@@ -150,7 +178,9 @@ export default function SearchBar({ size = "normal", autoFocus = false }: Search
       {showDropdown ? (
         <ul className="dropdown" id={listId} role="listbox">
           {rows.length === 0 ? (
-            <li role="presentation" className="dd-empty">No cards or sets found</li>
+            <li role="presentation" className="dd-empty">
+              {results?.unreachable ? "Couldn't reach the card database. Try again." : "No cards or sets found"}
+            </li>
           ) : (
             <>
               {cardCount > 0 ? <li role="presentation" className="dd-group">Cards</li> : null}
