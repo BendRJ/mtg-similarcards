@@ -122,3 +122,52 @@ def get_card_image(cur: Cursor, card_id: str) -> dict[str, Any] | None:
     cur.execute("SELECT ci.image, ci.content_type FROM card_images ci WHERE ci.card_id = %(card_id)s",
                 {"card_id": card_id})
     return cur.fetchone()
+
+
+def list_sets(cur: Cursor) -> list[dict[str, Any]]:
+    """Sets with at least one loaded card, newest first."""
+    cur.execute(
+        """
+        SELECT s.code, s.name, s.released_at, s.set_type, s.card_count, s.icon_svg_uri
+        FROM sets s
+        WHERE EXISTS (SELECT 1 FROM cards c WHERE c.set_code = s.code)
+        ORDER BY s.released_at DESC NULLS LAST, s.code
+        """
+    )
+    return cur.fetchall()
+
+
+def set_exists(cur: Cursor, set_code: str) -> bool:
+    cur.execute("SELECT 1 FROM sets s WHERE lower(s.code) = lower(%(set_code)s)",
+                {"set_code": set_code})
+    return cur.fetchone() is not None
+
+
+def get_set_cards(cur: Cursor, set_code: str, colors: list[str] | None) -> list[dict[str, Any]]:
+    """A set's cards in collector order, one per card (its lowest collector number).
+
+    colors keeps cards having any of the given colors, "C" meaning colorless.
+    None means no filter. Cards with NULL colors (double-faced) never match a filter.
+    """
+    colored = [c for c in colors if c != "C"] if colors is not None else None
+    colorless = colors is not None and "C" in colors
+    cur.execute(
+        f"""
+        SELECT id, name, mana_cost, type_line, colors, rarity, set_code, image_url
+        FROM (
+            SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS},
+                   NULLIF(regexp_replace(c.collector_number, '\\D', '', 'g'), '')::numeric AS collector_num,
+                   c.collector_number
+            FROM cards c
+            WHERE lower(c.set_code) = lower(%(set_code)s)
+              AND (%(filtered)s IS FALSE
+                   OR c.colors && %(colored)s::text[]
+                   OR (%(colorless)s AND c.colors = '{{}}'))
+            ORDER BY {CARD_KEY}, {COLLECTOR_ORDER}
+        ) t
+        ORDER BY t.collector_num NULLS LAST, t.collector_number
+        """,
+        {"set_code": set_code, "filtered": colors is not None,
+         "colored": colored, "colorless": colorless},
+    )
+    return cur.fetchall()

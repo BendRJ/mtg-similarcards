@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.backend.routers import cards
+from app.backend.routers import cards, sets
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,7 @@ def create_app(cors_origins: list[str]) -> FastAPI:
         return {"hello": "World!"}
 
     app.include_router(cards.router)
+    app.include_router(sets.router)
     return app
 
 
