@@ -60,6 +60,7 @@ function SetView({ code }: { code: string }) {
   return (
     <Layout>
       <div className="toolbar">
+        {info?.icon_svg_uri && <img className="seticon" src={info.icon_svg_uri} alt="" />}
         <h1>{name ?? upper}</h1>
         {name && (
           <span className="muted">{[upper, date].filter(Boolean).join(" · ")}</span>

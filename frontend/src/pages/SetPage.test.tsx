@@ -12,7 +12,7 @@ vi.mock("../api", async (importOriginal) => ({
 }));
 
 const CARD: CardSummary = { id: "c1", name: "Shock", mana_cost: null, type_line: null, colors: ["R"], rarity: null, set_code: "mh3", image_url: null };
-const MH3: SetSummary = { code: "mh3", name: "Modern Horizons 3", released_at: "2024-06-14", set_type: "draft_innovation", card_count: 100, icon_svg_uri: null };
+const MH3: SetSummary = { code: "mh3", name: "Modern Horizons 3", released_at: "2024-06-14", set_type: "draft_innovation", card_count: 100, icon_svg_uri: "https://svgs.example/mh3.svg" };
 
 function Probe() {
   const loc = useLocation();
@@ -43,6 +43,9 @@ describe("SetPage", () => {
     expect(await screen.findByText("Modern Horizons 3")).toBeTruthy();
     expect(screen.getByText("MH3 · June 2024")).toBeTruthy();
     expect(document.title).toBe("Modern Horizons 3");
+    const icon = document.querySelector("img.seticon");
+    expect(icon?.getAttribute("src")).toBe("https://svgs.example/mh3.svg");
+    expect(icon?.getAttribute("alt")).toBe("");
   });
 
   it("falls back to the code when the set is unknown or /sets fails", async () => {
@@ -50,6 +53,7 @@ describe("SetPage", () => {
     renderAt("/set/tok");
     expect(await screen.findByText("Shock")).toBeTruthy();
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("TOK");
+    expect(document.querySelector("img.seticon")).toBeNull();
   });
 
   it("toggles chips into the URL and the API call", async () => {

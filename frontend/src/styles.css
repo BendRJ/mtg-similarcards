@@ -80,3 +80,4 @@ a { color: var(--accent); }
 .chips { display: flex; gap: 6px; margin-left: auto; }
 .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; background: var(--panel); color: var(--ink); cursor: pointer; }
 .chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.seticon { width: 26px; height: 26px; flex: none; object-fit: contain; }
