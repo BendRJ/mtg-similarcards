@@ -2,15 +2,16 @@
   --bg: #f4f2ee; --panel: #fff; --ink: #1d1d1f; --muted: #6b6b70; --line: #dcd8d0; --accent: #5b3fd1;
   --W: #f5ecc8; --U: #a9d3f0; --B: #b9aea8; --R: #f0a38b; --G: #9fd4a8; --C: #d6d6d6;
   --card-ratio: 63 / 88;
+  --selected: rgba(29, 29, 31, .55);
 }
 /* Dark background is kept a step above black so black-bordered card images stand out. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #2a2a31; --panel: #34343c; --ink: #ececf1; --muted: #a3a3ae; --line: #4a4a55; --accent: #9b87ff;
+    --bg: #2a2a31; --panel: #34343c; --ink: #ececf1; --muted: #a3a3ae; --line: #4a4a55; --accent: #9b87ff; --selected: rgba(255, 255, 255, .7);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #2a2a31; --panel: #34343c; --ink: #ececf1; --muted: #a3a3ae; --line: #4a4a55; --accent: #9b87ff;
+  --bg: #2a2a31; --panel: #34343c; --ink: #ececf1; --muted: #a3a3ae; --line: #4a4a55; --accent: #9b87ff; --selected: rgba(255, 255, 255, .7);
 }
 
 * { box-sizing: border-box; }
@@ -77,7 +78,8 @@ a { color: var(--accent); }
 .oracle { white-space: pre-line; }
 .printings { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin: 6px 0 18px; }
 .printing { flex: none; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--ink); text-decoration: none; font-size: 12px; }
-.printing.sel { outline: 2px solid var(--accent); }
+/* Highlight drawn on the border (not an outline), so the scrolling strip can't clip it. */
+.printing.sel { border-color: var(--selected); box-shadow: inset 0 0 0 1px var(--selected); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
 .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; background: var(--panel); color: var(--ink); cursor: pointer; }
