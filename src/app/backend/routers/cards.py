@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.backend import queries
 from app.backend.db import get_db_cursor
-from app.backend.models import AutocompleteCard, CardDetail, CardSummary, Printing, SimilarCard
+from app.backend.models import (AutocompleteCard, CardDetail, CardSummary, Printing, SearchRequest,
+                                SearchResponse, SimilarCard)
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
@@ -25,6 +26,12 @@ def random_cards(colors: str = Query(pattern=r"^[WUBRGC](,[WUBRGC])*$",
                  limit: int = Query(100, ge=1, le=100),
                  cur: queries.Cursor = Depends(get_db_cursor)):
     return queries.random_cards(cur, colors.split(","), limit)
+
+
+@router.post("/search", response_model=SearchResponse,
+             description="Cards matching every filter, one entry per card (latest printing), at most 200.")
+def search(req: SearchRequest, cur: queries.Cursor = Depends(get_db_cursor)):
+    return queries.search_cards(cur, [f.model_dump() for f in req.filters], req.sort)
 
 
 @router.get("/{card_id}", response_model=CardDetail,
