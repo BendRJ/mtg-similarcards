@@ -102,4 +102,23 @@ describe("api", () => {
     await api.sets();
     expect(fn).toHaveBeenCalledTimes(1);
   });
+
+  it("posts the search request as JSON", async () => {
+    const fn = stubFetch({ total: 0, cards: [] });
+    const req = { filters: [{ field: "name" as const, op: "contains", value: "elf" }], sort: "name" as const };
+    await api.search(req);
+    expect(url(fn)).toBe("/cards/search");
+    const init = fn.mock.calls[0][1];
+    expect(init.method).toBe("POST");
+    expect(init.headers["Content-Type"]).toBe("application/json");
+    expect(JSON.parse(init.body)).toEqual(req);
+  });
+
+  it("maps a 422 on search to ApiError", async () => {
+    stubFetch({ detail: "bad" }, 422);
+    await expect(api.search({ filters: [], sort: "name" })).rejects.toMatchObject({
+      name: "ApiError",
+      status: 422,
+    });
+  });
 });
