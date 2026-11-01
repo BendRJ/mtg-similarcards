@@ -19,6 +19,11 @@ export default function Layout({ showSearch = true, children }: LayoutProps) {
             <SearchBar />
           </div>
         ) : null}
+        {showSearch ? (
+          <Link to="/search" className="adv-link">
+            Advanced search
+          </Link>
+        ) : null}
       </header>
       <main className="content">{children}</main>
       <footer className="footer">

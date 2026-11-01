@@ -84,3 +84,20 @@ a { color: var(--accent); }
 .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; background: var(--panel); color: var(--ink); cursor: pointer; }
 .chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
 .seticon { width: 26px; height: 26px; flex: none; object-fit: contain; }
+
+.adv-link { color: var(--accent); font-size: 14px; white-space: nowrap; text-decoration: none; }
+.adv-link:hover { text-decoration: underline; }
+.page-title { font-size: 20px; margin: 0 0 12px; }
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.fld { border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; background: var(--bg); color: var(--ink); font: inherit; font-size: 14px; }
+.inp { flex: 1; min-width: 200px; }
+.and { width: 34px; text-align: right; font-size: 12px; color: var(--muted); }
+.filter-chips { margin-left: 0; }
+.remove { margin-left: auto; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; background: var(--panel); color: var(--muted); font: inherit; cursor: pointer; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
+.actions .btn { margin-left: 0; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sort { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.count { margin: 16px 0 0; font-size: 13px; }
+@media (max-width: 480px) { .inp { min-width: 0; flex-basis: 100%; } }
