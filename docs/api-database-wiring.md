@@ -9,8 +9,8 @@ matches the code before acting on it.
 
 ## Where things stand
 
-- Routes live in `src/app/backend/routers/`, all SQL in `src/app/backend/queries.py` plus
-  `src/database/sql/queries/similar_cards.sql`, response models in `src/app/backend/models.py`.
+- Routes live in `src/app/backend/routers/`, all SQL in `src/app/backend/queries.py`, response
+  models in `src/app/backend/models.py`.
 - Each request gets one connection via `get_db_cursor()` (`src/app/backend/db.py`), a `dict_row`
   cursor over `database.db.get_db_connection()`.
 - psycopg errors map to **503** with a generic message; details are logged server-side only.
