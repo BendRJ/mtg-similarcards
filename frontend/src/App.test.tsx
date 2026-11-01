@@ -24,6 +24,19 @@ describe("App routing", () => {
     expect(screen.getByText("Page not found")).toBeTruthy();
   });
 
+  it("marks the header as main navigation with the current page highlighted", () => {
+    renderAt("/search");
+    const nav = screen.getByRole("navigation", { name: "Main" });
+    const link = screen.getByRole("link", { name: "Advanced search" });
+    expect(nav.contains(link)).toBe(true);
+    expect(link.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("does not mark Advanced search as current on other pages", () => {
+    renderAt("/nope");
+    expect(screen.getByRole("link", { name: "Advanced search" }).getAttribute("aria-current")).toBeNull();
+  });
+
   it("shows not found for the plural API path /cards", () => {
     renderAt("/cards");
     expect(screen.getByText("Page not found")).toBeTruthy();
