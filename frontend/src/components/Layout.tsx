@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router";
 import SearchBar from "./SearchBar";
+import ThemeToggle from "./ThemeToggle";
 
 type LayoutProps = {
   showSearch?: boolean;
@@ -24,6 +25,7 @@ export default function Layout({ showSearch = true, children }: LayoutProps) {
               <SearchBar />
             </div>
           ) : null}
+          <ThemeToggle />
         </nav>
       </header>
       <main className="content">{children}</main>
