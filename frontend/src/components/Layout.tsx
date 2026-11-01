@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, NavLink } from "react-router";
 import SearchBar from "./SearchBar";
 
 type LayoutProps = {
@@ -10,15 +10,23 @@ type LayoutProps = {
 export default function Layout({ showSearch = true, children }: LayoutProps) {
   return (
     <div className="layout">
+      {/* Full-width band; the inner div keeps the content at the page width. */}
       <header className="topbar">
-        <Link to="/" className="logo">
-          MTG Similar Cards
-        </Link>
-        {showSearch ? (
-          <div className="search-slot">
-            <SearchBar />
-          </div>
-        ) : null}
+        <nav className="topbar-inner" aria-label="Main">
+          <Link to="/" className="logo">
+            <span className="logo-mark" aria-hidden="true">S</span>
+            MTG Similar Cards
+          </Link>
+          {showSearch ? (
+            <div className="search-slot">
+              <SearchBar />
+            </div>
+          ) : null}
+          {/* NavLink sets aria-current="page" on its own page, which also drives the active style. */}
+          <NavLink to="/search" className="nav-btn">
+            Advanced search
+          </NavLink>
+        </nav>
       </header>
       <main className="content">{children}</main>
       <footer className="footer">

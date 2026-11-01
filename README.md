@@ -2,7 +2,8 @@
 
 A card discovery app for Magic: The Gathering players. Search a card, see its printings and
 cards similar to it (vector similarity over rules text), browse a set by color, or pull 100 random
-cards of a color.
+cards of a color. Advanced search (`/search`) builds a card list from rules text, name, keyword,
+type and color filters.
 
 - **Backend:** Python 3.13, FastAPI backend-for-frontend over PostgreSQL 16 + `pgvector`
   (psycopg 3), fed by an ETL pipeline from the Scryfall API.

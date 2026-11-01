@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advanced Search Mockup</title>
+<style>
+  :root { --bg:#f4f2ee; --panel:#fff; --ink:#1d1d1f; --muted:#6b6b70; --line:#dcd8d0; --accent:#5b3fd1;
+          --W:#f5ecc8; --U:#a9d3f0; --B:#b9aea8; --R:#f0a38b; --G:#9fd4a8; --C:#d6d6d6; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+          --bg:#2a2a31; --panel:#34343c; --ink:#ececf1; --muted:#a3a3ae; --line:#4a4a55; --accent:#9b87ff; } }
+  :root[data-theme="dark"] { --bg:#2a2a31; --panel:#34343c; --ink:#ececf1; --muted:#a3a3ae; --line:#4a4a55; --accent:#9b87ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, -apple-system, sans-serif; padding:24px 16px 64px; }
+  main { max-width:1100px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:18px; margin:0 0 10px; }
+  .lead, .note { color:var(--muted); } .note { font-size:13px; margin:8px 0 0; } .note b { color:var(--ink); }
+  .screen { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; margin-top:16px; }
+  .bar { display:flex; gap:12px; align-items:center; padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:18px; }
+  .logo { font-weight:700; white-space:nowrap; } .search { flex:1; border:1px solid var(--line); border-radius:8px; padding:9px 12px; color:var(--muted); background:var(--bg); min-width:0; }
+  .link { color:var(--accent); font-size:14px; white-space:nowrap; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:8px 0; border-bottom:1px dashed var(--line); }
+  .sel, .inp { border:1px solid var(--line); border-radius:8px; padding:7px 10px; background:var(--bg); color:var(--ink); font:inherit; font-size:14px; }
+  .sel::after { content:" ▾"; color:var(--muted); } .inp { min-width:200px; flex:1; color:var(--ink); }
+  .and { font-size:12px; color:var(--muted); width:34px; text-align:right; }
+  .x { margin-left:auto; color:var(--muted); border:1px solid var(--line); border-radius:6px; padding:2px 8px; }
+  .chip { border:1px solid var(--line); border-radius:999px; padding:4px 10px; font-size:13px; background:var(--panel); }
+  .chip.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px; }
+  .btn { border:1px solid var(--line); border-radius:8px; padding:7px 14px; background:var(--panel); font-size:14px; }
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px; margin-top:18px; }
+  .card { aspect-ratio:63/88; border-radius:7px; border:1px solid var(--line); background:linear-gradient(160deg, var(--line), var(--bg)); display:flex; align-items:flex-end; padding:6px; font-size:12px; }
+  .count { color:var(--muted); font-size:13px; margin-top:16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Advanced search: first mockup</h1>
+  <p class="lead">Your query, built as filter rows. Every row must match (AND). Grey boxes are card images.</p>
+
+  <div class="screen">
+    <div class="bar"><span class="logo">⟡ Similar Cards</span><div class="search">Search cards or sets…</div><span class="link">Advanced search</span></div>
+    <h2>Advanced search</h2>
+
+    <div class="row"><span class="and"></span><span class="sel">Rules text</span><span class="sel">contains</span><span class="inp">artifact</span><span class="x">✕</span></div>
+    <div class="row"><span class="and">and</span><span class="sel">Rules text</span><span class="sel">contains</span><span class="inp">token</span><span class="x">✕</span></div>
+    <div class="row"><span class="and">and</span><span class="sel">Rules text</span><span class="sel">does not contain</span><span class="inp">clue</span><span class="x">✕</span></div>
+    <div class="row"><span class="and">and</span><span class="sel">Type</span><span class="sel">is</span><span class="sel">Land</span><span class="x">✕</span></div>
+    <div class="row"><span class="and">and</span><span class="sel">Color</span><span class="sel">has any of</span>
+      <span class="chip on">W</span><span class="chip">U</span><span class="chip">B</span><span class="chip on">R</span><span class="chip">G</span><span class="chip on">C</span><span class="x">✕</span></div>
+    <div class="row"><span class="and">and</span><span class="sel">Color</span><span class="sel">has none of</span>
+      <span class="chip">W</span><span class="chip on">U</span><span class="chip on">B</span><span class="chip">R</span><span class="chip on">G</span><span class="chip">C</span><span class="x">✕</span></div>
+
+    <div class="actions">
+      <span class="btn">+ Add filter</span>
+      <span style="margin-left:auto"></span>
+      <span class="note" style="margin:0">Sort by</span><span class="sel">Mana value ↑</span>
+      <span class="btn primary">Search</span>
+    </div>
+
+    <div class="count">37 cards · each card shown once (latest printing)</div>
+    <div class="grid">
+      <div class="card">Urza's Saga</div><div class="card">Inventors' Fair</div><div class="card">Treasure Vault</div><div class="card">…</div><div class="card">…</div>
+    </div>
+  </div>
+
+  <p class="note"><b>Guesses:</b></p>
+  <ul class="note">
+    <li><b>Fields:</b> Rules text, Type, Color. I also added <b>Name contains</b> (your query has it commented out).</li>
+    <li><b>Operators:</b> text uses "contains" or "does not contain", case-insensitive. Type uses "is" or "is not", from a fixed list (Artifact, Battle, Creature, Enchantment, Instant, Land, Planeswalker, Sorcery, Kindred), and "is Land" matches any card whose type line includes Land. Color uses "has any of", "has all of" or "has none of", with C meaning colorless.</li>
+    <li><b>Page:</b> a separate page at <code>/search</code>, linked from the top bar. The home search bar stays as it is.</li>
+    <li><b>Filters in the URL:</b> a search can be bookmarked or shared and survives a reload.</li>
+    <li><b>Sort:</b> by name (default), mana value ascending, or mana value descending.</li>
+    <li><b>Results:</b> same grid and tiles as the set page, only real game cards (no tokens), limited to the first 200 matches with a count shown.</li>
+  </ul>
+</main>
+</body>
+</html>

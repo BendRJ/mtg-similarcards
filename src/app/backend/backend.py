@@ -3,6 +3,8 @@ import os
 
 import psycopg
 from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -27,6 +29,14 @@ def create_app(cors_origins: list[str]) -> FastAPI:
         logger.error("Database error on %s %s", request.method, request.url.path, exc_info=exc)
         return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                             content={"detail": "Database unavailable."})
+
+    @app.exception_handler(RequestValidationError)
+    def validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+        # The default 422 body echoes the rejected input, which can hold characters that
+        # cannot be encoded (a lone surrogate) and would turn the 422 into a 500.
+        errors = [{"type": e["type"], "loc": e["loc"], "msg": e["msg"]} for e in exc.errors()]
+        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                            content={"detail": jsonable_encoder(errors)})
 
     @app.get("/", name="Hello World", include_in_schema=False)
     def home():

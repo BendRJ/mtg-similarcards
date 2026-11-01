@@ -36,6 +36,10 @@ COLLECTOR_ORDER: LiteralString = (
     "c.collector_number"
 )
 
+# Which printing represents a card: a physical one if any exists (digital = Arena/MTGO-only
+# printings sort last, false < true), then the newest, then collector order.
+LATEST_PRINTING: LiteralString = "c.digital, c.released_at DESC NULLS LAST, " + COLLECTOR_ORDER
+
 # A stored image wins (existence check only; the bytes are fetched by get_card_image alone).
 # Otherwise fall back to the Scryfall link, or NULL when the card has none.
 IMAGE_URL: LiteralString = """
@@ -96,7 +100,7 @@ def autocomplete_cards(cur: Cursor, query: str, limit: int) -> list[dict[str, An
                    c.image_uris->>'small' AS image_url_small
             FROM cards c
             WHERE c.name ILIKE %(contains)s AND {PLAYABLE}
-            ORDER BY {CARD_KEY}, c.released_at DESC NULLS LAST, {COLLECTOR_ORDER}
+            ORDER BY {CARD_KEY}, {LATEST_PRINTING}
         ) t
         ORDER BY (t.name ILIKE %(prefix)s) DESC, t.name
         LIMIT %(limit)s
@@ -210,7 +214,7 @@ def random_cards(cur: Cursor, colors: list[str], limit: int) -> list[dict[str, A
             SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS}
             FROM cards c
             WHERE {PLAYABLE} AND ({COLOR_FILTER})
-            ORDER BY {CARD_KEY}, c.released_at DESC NULLS LAST, {COLLECTOR_ORDER}
+            ORDER BY {CARD_KEY}, {LATEST_PRINTING}
         ) t
         ORDER BY random()
         LIMIT %(limit)s
@@ -218,3 +222,109 @@ def random_cards(cur: Cursor, colors: list[str], limit: int) -> list[dict[str, A
         {**color_params(colors), "limit": limit},
     )
     return cur.fetchall()
+
+
+# Card types offered by the advanced search "type is" filter. Only these are ever
+# put into a regex, so no user text reaches one.
+SEARCH_TYPES = (
+    "Artifact", "Battle", "Creature", "Enchantment", "Instant",
+    "Kindred", "Land", "Planeswalker", "Sorcery",
+)
+
+SEARCH_SORTS: dict[str, LiteralString] = {
+    "name": "t.name, t.id",
+    "cmc_asc": "t.cmc ASC NULLS LAST, t.name, t.id",
+    "cmc_desc": "t.cmc DESC NULLS LAST, t.name, t.id",
+}
+
+# Text filters. Negative ones need the column to be known: a NULL never matches.
+# {p} is the parameter name. Cards without rules text (some double-faced layouts)
+# match "contains" through their keywords instead.
+KEYWORD_MATCH: LiteralString = "EXISTS (SELECT 1 FROM unnest(c.keywords) k WHERE k ILIKE %({p})s)"
+TEXT_CLAUSES: dict[tuple[str, str], LiteralString] = {
+    ("oracle_text", "contains"):
+        "(c.oracle_text ILIKE %({p})s OR (c.oracle_text IS NULL AND " + KEYWORD_MATCH + "))",
+    ("oracle_text", "not_contains"): "(c.oracle_text IS NOT NULL AND c.oracle_text NOT ILIKE %({p})s)",
+    ("name", "contains"): "c.name ILIKE %({p})s",
+    ("name", "not_contains"): "c.name NOT ILIKE %({p})s",
+    ("keywords", "contains"): KEYWORD_MATCH,
+    ("keywords", "not_contains"): "(c.keywords IS NOT NULL AND NOT " + KEYWORD_MATCH + ")",
+    ("type", "contains"): "c.type_line ILIKE %({p})s",
+    ("type", "not_contains"): "(c.type_line IS NOT NULL AND c.type_line NOT ILIKE %({p})s)",
+}
+
+TYPE_CLAUSES: dict[str, LiteralString] = {
+    "is": "c.type_line ~* %({p})s",
+    "is_not": "(c.type_line IS NOT NULL AND c.type_line !~* %({p})s)",
+}
+
+# {p}_c holds the colored letters, {p}_cl whether "C" (colorless) was picked.
+COLOR_CLAUSES: dict[str, LiteralString] = {
+    "any": "(c.colors && %({p}_c)s::text[] OR (%({p}_cl)s AND c.colors = '{}'))",
+    "none": "(c.colors IS NOT NULL AND NOT (c.colors && %({p}_c)s::text[]) "
+            "AND NOT (%({p}_cl)s AND c.colors = '{}'))",
+}
+
+
+def filter_clause(index: int, flt: dict[str, Any]) -> tuple[LiteralString, dict[str, Any]]:
+    """SQL fragment and bound parameters for one validated filter.
+
+    Parameter names carry the filter's index so several filters can be ANDed.
+    Raises ValueError for an unknown (field, op); validation happens upstream.
+    """
+    field, op, value = flt["field"], flt["op"], flt["value"]
+    p = f"p{index}"
+    if (field, op) in TEXT_CLAUSES:
+        return (cast(LiteralString, TEXT_CLAUSES[field, op].replace("{p}", p)),
+                {p: f"%{escape_like(value)}%"})
+    if field == "type" and op in TYPE_CLAUSES:
+        if value not in SEARCH_TYPES:
+            raise ValueError(f"Unknown type: {value!r}")
+        # Whole word, so "Land" doesn't match "Landfall". Kindred was once Tribal.
+        word = "Kindred|Tribal" if value == "Kindred" else value
+        return (cast(LiteralString, TYPE_CLAUSES[op].replace("{p}", p)),
+                {p: rf"\m({word})\M"})
+    if field == "colors" and op in ("any", "all", "none"):
+        colored = [c for c in value if c != "C"]
+        colorless = "C" in value
+        if op == "all":
+            if colorless:
+                # Colorless and colored are mutually exclusive.
+                return ("FALSE" if colored else "c.colors = '{}'"), {}
+            return f"c.colors @> %({p}_c)s::text[]", {f"{p}_c": colored}
+        return (cast(LiteralString, COLOR_CLAUSES[op].replace("{p}", p)),
+                {f"{p}_c": colored, f"{p}_cl": colorless})
+    raise ValueError(f"Unknown filter: {field}.{op}")
+
+
+def search_cards(cur: Cursor, filters: list[dict[str, Any]], sort: str,
+                 limit: int = 200) -> dict[str, Any]:
+    """Playable cards matching every filter, one per card (its latest matching printing).
+
+    Returns the first `limit` cards in the given sort and `total`, the full match count.
+    """
+    clauses: list[LiteralString] = []
+    params: dict[str, Any] = {"limit": limit}
+    for i, flt in enumerate(filters):
+        clause, clause_params = filter_clause(i, flt)
+        clauses.append(clause)
+        params.update(clause_params)
+    where = "".join(f" AND {clause}" for clause in clauses)
+    cur.execute(
+        f"""
+        SELECT id, name, mana_cost, type_line, colors, rarity, set_code, image_url,
+               count(*) OVER () AS total
+        FROM (
+            SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS}, c.cmc
+            FROM cards c
+            WHERE {PLAYABLE}{where}
+            ORDER BY {CARD_KEY}, {LATEST_PRINTING}
+        ) t
+        ORDER BY {SEARCH_SORTS[sort]}
+        LIMIT %(limit)s
+        """,  # type: ignore[arg-type]
+        params,
+    )
+    rows = cur.fetchall()
+    total = rows[0]["total"] if rows else 0
+    return {"total": total, "cards": [{k: v for k, v in r.items() if k != "total"} for r in rows]}

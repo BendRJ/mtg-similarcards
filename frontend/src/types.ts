@@ -55,3 +55,20 @@ export interface SetSummary {
   card_count: number | null;
   icon_svg_uri: string | null;
 }
+
+export interface SearchFilter {
+  field: "oracle_text" | "name" | "keywords" | "type" | "colors";
+  op: string;
+  value: string | string[];
+}
+
+export interface SearchRequest {
+  filters: SearchFilter[];
+  sort: "name" | "cmc_asc" | "cmc_desc";
+}
+
+export interface SearchResponse {
+  // total is the full match count, cards holds at most 200.
+  total: number;
+  cards: CardSummary[];
+}

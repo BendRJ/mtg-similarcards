@@ -138,5 +138,76 @@ class TestCardImageRoute(CardRoutesTestCase):
         self.assertEqual(self.client.get("/cards/a1/image").status_code, 404)
 
 
+class TestSearchRoute(CardRoutesTestCase):
+    def post(self, filters, **extra):
+        return self.client.post("/cards/search", json={"filters": filters, **extra})
+
+    @patch("app.backend.queries.get_card", side_effect=AssertionError("shadowed by /{card_id}"))
+    @patch("app.backend.queries.search_cards",
+           return_value={"total": 1, "cards": [{"id": "a1", "name": "Bolt"}]})
+    def test_valid_body_passes_normalised_filters(self, search_cards, _):
+        response = self.post([
+            {"field": "oracle_text", "op": "contains", "value": "  artifact "},
+            {"field": "colors", "op": "any", "value": ["r", "W", "r"]},
+            {"field": "type", "op": "is", "value": "land"},
+        ], sort="cmc_asc")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["total"], 1)
+        self.assertEqual(response.json()["cards"][0]["name"], "Bolt")
+        search_cards.assert_called_once_with(ANY, [
+            {"field": "oracle_text", "op": "contains", "value": "artifact"},
+            {"field": "colors", "op": "any", "value": ["W", "R"]},
+            {"field": "type", "op": "is", "value": "Land"},
+        ], "cmc_asc")
+
+    @patch("app.backend.queries.search_cards", return_value={"total": 0, "cards": []})
+    def test_sort_defaults_to_name(self, search_cards):
+        self.post([{"field": "name", "op": "contains", "value": "x"}])
+        self.assertEqual(search_cards.call_args.args[2], "name")
+
+    @patch("app.backend.queries.search_cards", return_value={"total": 0, "cards": []})
+    def test_type_contains_accepts_free_text(self, search_cards):
+        self.assertEqual(self.post([{"field": "type", "op": "contains", "value": "Elf"}]).status_code, 200)
+        self.assertEqual(search_cards.call_args.args[1][0]["value"], "Elf")
+
+    def test_invalid_bodies_give_422(self):
+        ok = {"field": "name", "op": "contains", "value": "x"}
+        cases = {
+            "unknown field": [{"field": "power", "op": "contains", "value": "x"}],
+            "op not valid for field": [{"field": "colors", "op": "contains", "value": ["R"]}],
+            "empty text": [{"field": "name", "op": "contains", "value": "   "}],
+            "101 chars": [{"field": "name", "op": "contains", "value": "a" * 101}],
+            "unknown type": [{"field": "type", "op": "is", "value": "Dragon"}],
+            "color X": [{"field": "colors", "op": "any", "value": ["X"]}],
+            "empty colors": [{"field": "colors", "op": "any", "value": []}],
+            "list for text": [{"field": "name", "op": "contains", "value": ["a"]}],
+            "string for colors": [{"field": "colors", "op": "any", "value": "R"}],
+            "NUL character": [{"field": "name", "op": "contains", "value": "a\x00b"}],
+            "no filters": [],
+            "21 filters": [ok] * 21,
+        }
+        with patch("app.backend.queries.search_cards") as search_cards:
+            for name, filters in cases.items():
+                with self.subTest(name):
+                    self.assertEqual(self.post(filters).status_code, 422)
+            with self.subTest("bogus sort"):
+                self.assertEqual(self.post([ok], sort="bogus").status_code, 422)
+            search_cards.assert_not_called()
+
+    def test_lone_surrogate_gives_422(self):
+        # Sent as raw JSON: the test client cannot encode a lone surrogate itself.
+        body = b'{"filters": [{"field": "name", "op": "contains", "value": "\\ud800"}]}'
+        with patch("app.backend.queries.search_cards") as search_cards:
+            response = self.client.post(
+                "/cards/search", content=body, headers={"Content-Type": "application/json"})
+            self.assertEqual(response.status_code, 422)
+            search_cards.assert_not_called()
+
+    @patch("app.backend.queries.search_cards", return_value={"total": 0, "cards": []})
+    def test_20_filters_ok(self, _):
+        ok = {"field": "name", "op": "contains", "value": "x"}
+        self.assertEqual(self.post([ok] * 20).status_code, 200)
+
+
 if __name__ == "__main__":
     unittest.main()

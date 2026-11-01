@@ -1,8 +1,9 @@
 -- Cards most similar to %(card_id)s by cosine distance, one row per card (oracle_id),
--- each shown as its most recent embedded printing. The reference card and all its
--- reprints are excluded. The reference vector comes from any embedded printing of
--- the card, so an older printing without an embedding still works.
--- Column lists mirror SUMMARY_COLUMNS / COLLECTOR_ORDER / PLAYABLE in app/backend/queries.py.
+-- each shown as its most recent embedded printing, physical before digital. The
+-- reference card and all its reprints are excluded. The reference vector comes from
+-- any embedded printing of the card, so an older printing without an embedding
+-- still works.
+-- Column lists mirror SUMMARY_COLUMNS / LATEST_PRINTING / PLAYABLE in app/backend/queries.py.
 WITH ref AS (
     SELECT COALESCE(oracle_id, id) AS card_key, embedding
     FROM cards
@@ -25,6 +26,7 @@ candidates AS (
       AND COALESCE(c.layout, '') NOT IN ('token', 'double_faced_token', 'emblem', 'art_series')
       AND COALESCE(c.set_type, '') NOT IN ('token', 'memorabilia', 'minigame')
     ORDER BY COALESCE(c.oracle_id, c.id),
+             c.digital,
              c.released_at DESC NULLS LAST,
              NULLIF(regexp_replace(c.collector_number, '\D', '', 'g'), '')::numeric NULLS LAST,
              c.collector_number
