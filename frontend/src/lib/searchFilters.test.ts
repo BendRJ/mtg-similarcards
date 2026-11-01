@@ -47,6 +47,25 @@ describe("searchFilters", () => {
     ]);
   });
 
+  it("drops values with a NUL character", () => {
+    const params = new URLSearchParams("f=name.contains.a%00b");
+    expect(parseSearchParams(params).filters).toEqual([defaultFilter()]);
+  });
+
+  it("drops values with a lone surrogate", () => {
+    expect(isComplete({ field: "name", op: "contains", value: "a\ud800b" })).toBe(false);
+  });
+
+  it("trims like the backend (Python strip)", () => {
+    expect(parseSearchParams(new URLSearchParams("f=name.contains.%1C")).filters).toEqual([
+      defaultFilter(),
+    ]);
+    expect(
+      parseSearchParams(new URLSearchParams("f=name.contains.%20%1Cbolt%1C%20")).filters,
+    ).toEqual([{ field: "name", op: "contains", value: "bolt" }]);
+    expect(isComplete({ field: "name", op: "contains", value: "\u0085" })).toBe(false);
+  });
+
   it("reads lowercase color letters", () => {
     const { filters } = parseSearchParams(new URLSearchParams("f=colors.any.wrc"));
     expect(filters).toEqual([{ field: "colors", op: "any", value: ["W", "R", "C"] }]);

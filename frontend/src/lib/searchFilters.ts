@@ -76,6 +76,12 @@ function canonicalType(text: string): string | null {
   return TYPES.find((t) => t.toLowerCase() === lower) ?? null;
 }
 
+// The characters Python's str.strip() removes. The backend trims with it, so the frontend must too.
+const PY_WHITESPACE = "\\t\\n\\v\\f\\r\\x1c-\\x1f \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000";
+const PY_TRIM = new RegExp(`^[${PY_WHITESPACE}]+|[${PY_WHITESPACE}]+$`, "g");
+// A NUL character or a lone surrogate is rejected by the backend.
+const BAD_TEXT = /\u0000|[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/;
+
 // Returns the cleaned value (trimmed text, canonical type, ordered colors) or null if invalid.
 function normaliseValue(field: Field, op: Op, value: string | Color[]): string | Color[] | null {
   if (!FIELDS[field].ops.some((o) => o.op === op)) return null;
@@ -86,7 +92,8 @@ function normaliseValue(field: Field, op: Op, value: string | Color[]): string |
   }
   if (typeof value !== "string") return null;
   if (valueKind(field, op) === "type") return canonicalType(value);
-  const text = value.trim();
+  const text = value.replace(PY_TRIM, "");
+  if (BAD_TEXT.test(text)) return null;
   return text.length >= 1 && text.length <= MAX_TEXT_LENGTH ? text : null;
 }
 

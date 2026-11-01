@@ -13,6 +13,11 @@ describe("HomePage", () => {
     expect(hrefs).toEqual(["/color/w", "/color/u", "/color/b", "/color/r", "/color/g", "/color/c"]);
   });
 
+  it("links to the advanced search", () => {
+    render(<MemoryRouter><HomePage /></MemoryRouter>);
+    expect(screen.getByRole("link", { name: "Advanced search" }).getAttribute("href")).toBe("/search");
+  });
+
   it("shows only the big search bar", () => {
     render(<MemoryRouter><HomePage /></MemoryRouter>);
     expect(screen.getAllByPlaceholderText("Search cards or sets…")).toHaveLength(1);

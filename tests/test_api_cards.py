@@ -182,6 +182,7 @@ class TestSearchRoute(CardRoutesTestCase):
             "empty colors": [{"field": "colors", "op": "any", "value": []}],
             "list for text": [{"field": "name", "op": "contains", "value": ["a"]}],
             "string for colors": [{"field": "colors", "op": "any", "value": "R"}],
+            "NUL character": [{"field": "name", "op": "contains", "value": "a\x00b"}],
             "no filters": [],
             "21 filters": [ok] * 21,
         }
@@ -191,6 +192,15 @@ class TestSearchRoute(CardRoutesTestCase):
                     self.assertEqual(self.post(filters).status_code, 422)
             with self.subTest("bogus sort"):
                 self.assertEqual(self.post([ok], sort="bogus").status_code, 422)
+            search_cards.assert_not_called()
+
+    def test_lone_surrogate_gives_422(self):
+        # Sent as raw JSON: the test client cannot encode a lone surrogate itself.
+        body = b'{"filters": [{"field": "name", "op": "contains", "value": "\\ud800"}]}'
+        with patch("app.backend.queries.search_cards") as search_cards:
+            response = self.client.post(
+                "/cards/search", content=body, headers={"Content-Type": "application/json"})
+            self.assertEqual(response.status_code, 422)
             search_cards.assert_not_called()
 
     @patch("app.backend.queries.search_cards", return_value={"total": 0, "cards": []})

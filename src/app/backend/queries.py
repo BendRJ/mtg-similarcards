@@ -228,9 +228,9 @@ SEARCH_TYPES = (
 )
 
 SEARCH_SORTS: dict[str, LiteralString] = {
-    "name": "t.name",
-    "cmc_asc": "t.cmc ASC NULLS LAST, t.name",
-    "cmc_desc": "t.cmc DESC NULLS LAST, t.name",
+    "name": "t.name, t.id",
+    "cmc_asc": "t.cmc ASC NULLS LAST, t.name, t.id",
+    "cmc_desc": "t.cmc DESC NULLS LAST, t.name, t.id",
 }
 
 # Text filters. Negative ones need the column to be known: a NULL never matches.

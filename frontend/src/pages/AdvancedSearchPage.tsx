@@ -95,7 +95,7 @@ function SearchView() {
         ) : (
           <>
             <p className="muted count">
-              {data.total} cards{data.total > 200 ? " · showing the first 200" : ""}
+              {data.total} {data.total === 1 ? "card" : "cards"}{data.total > 200 ? " · showing the first 200" : ""}
             </p>
             <CardGrid cards={data.cards} />
           </>

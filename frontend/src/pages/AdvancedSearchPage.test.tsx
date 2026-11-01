@@ -89,7 +89,7 @@ describe("AdvancedSearchPage", () => {
   it("runs the search from the URL on load", async () => {
     renderAt("/search?f=oracle_text.contains.artifact");
     expect(await screen.findByText("Card 1")).toBeTruthy();
-    expect(screen.getByText("1 cards")).toBeTruthy();
+    expect(screen.getByText("1 card")).toBeTruthy();
     expect(api.search).toHaveBeenCalledWith(
       { filters: [{ field: "oracle_text", op: "contains", value: "artifact" }], sort: "name" },
       expect.any(AbortSignal),

@@ -102,6 +102,12 @@ class SearchFilter(BaseModel):
         if not isinstance(self.value, str):
             raise ValueError("This field needs a text value.")
         text = self.value.strip()
+        if "\x00" in text:
+            raise ValueError("Text must not contain NUL characters.")
+        try:
+            text.encode("utf-8")
+        except UnicodeEncodeError:
+            raise ValueError("Text must be valid Unicode.") from None
         if self.field == "type" and self.op in ("is", "is_not"):
             # Case-insensitive, normalised to the canonical name.
             canonical = {t.lower(): t for t in SEARCH_TYPES}.get(text.lower())

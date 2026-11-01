@@ -185,6 +185,20 @@ class TestSearchQuery(DBTestCase):
         insert_card(self.cur, "a2", "Elemental Shaman", oracle_id="o2", layout="normal")
         self.assertEqual(self.search(f("name", "contains", "elemental")), ["Elemental Shaman"])
 
+    def test_same_name_and_cmc_ordered_by_id_for_every_sort(self):
+        # oracle ids run opposite to the ids, so only the tiebreak can give id order.
+        for card_id, oracle_id in (("z9", "o1"), ("a1", "o3"), ("m5", "o2")):
+            insert_card(self.cur, card_id, "B.F.M.", oracle_id=oracle_id, cmc=3)
+        for sort in ("name", "cmc_asc", "cmc_desc"):
+            with self.subTest(sort):
+                runs = [
+                    [c["id"] for c in queries.search_cards(
+                        self.cur, [f("name", "contains", "b.f.m")], sort)["cards"]]
+                    for _ in range(2)
+                ]
+                self.assertEqual(runs[0], ["a1", "m5", "z9"])
+                self.assertEqual(runs[0], runs[1])
+
     def test_unknown_filter_raises(self):
         with self.assertRaises(ValueError):
             queries.search_cards(self.cur, [f("name", "bogus", "x")], "name")
