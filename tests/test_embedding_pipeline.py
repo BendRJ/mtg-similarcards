@@ -3,6 +3,7 @@ DB tests for the embedding pipeline core, against a real Postgres (skipped witho
 The model is replaced by a fake encoder, so these test grouping and writing only.
 """
 
+import datetime
 import unittest
 
 from database.etl.embedding_pipeline import embed_missing
@@ -62,6 +63,19 @@ class TestEmbedMissing(DBTestCase):
         self.assertEqual(embed_missing(self.cur, encode, batch_size=2, after_batch=lambda: done.append(1)), 5)
         self.assertEqual([len(b) for b in encode.calls], [2, 2, 1])
         self.assertEqual(len(done), 3)
+
+    def test_released_after_keeps_cards_with_a_newer_printing_and_embeds_all_their_printings(self):
+        insert_card(self.cur, "bolt93", "Bolt", oracle_text="3 damage.", released_at="1993-08-05")
+        insert_card(self.cur, "bolt20", "Bolt", oracle_text="3 damage.", released_at="2020-01-01")
+        insert_card(self.cur, "old", "Old Card", oracle_text="Only printed long ago.", released_at="2005-01-01")
+        insert_card(self.cur, "edge", "Edge Card", oracle_text="Printed on the cutoff day.", released_at="2010-12-31")
+        encode = FakeEncoder()
+        self.assertEqual(embed_missing(self.cur, encode, released_after=datetime.date(2010, 12, 31)), 2)
+        self.assertEqual(encode.texts, ["3 damage."])
+        self.assertTrue(self.embedded("bolt93"))
+        self.assertTrue(self.embedded("bolt20"))
+        self.assertFalse(self.embedded("old"))
+        self.assertFalse(self.embedded("edge"))
 
     def test_nothing_to_do(self):
         insert_card(self.cur, "done", "Bolt", oracle_text="3 damage.", embedding=vec(1))

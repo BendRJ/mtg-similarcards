@@ -14,7 +14,7 @@ help:
 	@echo ""
 	@echo "  Data Operations:"
 	@echo "    run-insert          - Run example insert script (sets PYTHONPATH)"
-	@echo "    run-embeddings      - Generate vector embeddings for cards (sets PYTHONPATH)"
+	@echo "    run-embeddings      - Generate missing card embeddings (RELEASED_AFTER=2010-12-31 to limit by printing date)"
 	@echo "    reset-embeddings    - Clear all embeddings (for regeneration after text changes)"
 	@echo ""
 	@echo "  Application:"
@@ -92,7 +92,8 @@ run-insert:
 
 run-embeddings:
 	@echo "Running embedding pipeline..."
-	PYTHONPATH=$(shell pwd)/src uv run python -m database.etl.embedding_pipeline
+	PYTHONPATH=$(shell pwd)/src uv run python -m database.etl.embedding_pipeline \
+		$(if $(RELEASED_AFTER),--released-after $(RELEASED_AFTER))
 
 run-image:
 	@echo "Running image pipeline..."
