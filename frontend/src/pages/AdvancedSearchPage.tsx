@@ -51,8 +51,11 @@ function SearchView() {
   const data = results.data;
   return (
     <Layout>
-      <h1 className="page-title">Advanced search</h1>
-      <form className="adv-form" onSubmit={submit}>
+      <div className="page-head">
+        <h1>Advanced search.</h1>
+        <p className="lead">Stack as many filters as you like. Every card shows once, in its latest printing.</p>
+      </div>
+      <form className="panel" onSubmit={submit}>
         {filters.map((f, i) => (
           <FilterRow
             key={i}
@@ -65,13 +68,13 @@ function SearchView() {
         <div className="actions">
           <button
             type="button"
-            className="btn"
+            className="link-btn"
             disabled={filters.length >= MAX_FILTERS}
             onClick={() => setFilters([...filters, defaultFilter()])}
           >
             + Add filter
           </button>
-          <label className="sort">
+          <label className="sort push">
             <span className="muted">Sort by</span>
             <select className="fld" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
               {SORTS.map((s) => (
@@ -84,7 +87,7 @@ function SearchView() {
           </button>
         </div>
       </form>
-      {!request && <p className="muted">Add at least one filter with a value, then press Search.</p>}
+      {!request && <p className="muted page-hint">Add at least one filter with a value, then press Search.</p>}
       {request && results.status === "loading" && <Loading />}
       {request && results.status === "error" && results.error && (
         <ErrorState error={results.error} onRetry={results.reload} />

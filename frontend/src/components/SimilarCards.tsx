@@ -68,39 +68,45 @@ function SimilarView({ id }: { id: string }) {
   const cards = first.data ? [...first.data.cards, ...more] : [];
   const canShowMore = hasMore ?? first.data?.has_more ?? false;
   return (
-    <section className="similar">
-      <div className="similar-tools">
-        <button type="button" className="btn" aria-expanded={open} aria-controls="similar-filters"
-                onClick={() => setOpen(!open)}>
-          Filter similar cards
-        </button>
-        {filters.length > 0 && (
-          <span className="muted">{filters.length} {filters.length === 1 ? "filter" : "filters"} active</span>
+    <section id="similar" className="similar" aria-labelledby="similar-h">
+      <div className="section-head">
+        <h2 id="similar-h" className="section-title">Cards like this.</h2>
+        <p className="lead">Ranked by how closely their rules text matches. Filters keep that order.</p>
+      </div>
+      <div className="panel">
+        <div className="panel-head">
+          <button type="button" className="btn" aria-expanded={open} aria-controls="similar-filters"
+                  onClick={() => setOpen(!open)}>
+            Filter similar cards
+          </button>
+          {filters.length > 0 && (
+            <span className="muted">{filters.length} {filters.length === 1 ? "filter" : "filters"} active</span>
+          )}
+        </div>
+        {open && (
+          <form id="similar-filters" onSubmit={apply}>
+            {rows.map((f, i) => (
+              <FilterRow
+                key={i}
+                filter={f}
+                index={i}
+                onChange={(next) => setRows(rows.map((r, j) => (j === i ? next : r)))}
+                onRemove={() => setRows(rows.filter((_, j) => j !== i))}
+              />
+            ))}
+            <div className="actions">
+              <button type="button" className="link-btn" disabled={rows.length >= MAX_FILTERS}
+                      onClick={() => setRows([...rows, defaultFilter()])}>
+                + Add filter
+              </button>
+              <button type="button" className="link-btn" onClick={() => setSearchParams(new URLSearchParams())}>
+                Clear filters
+              </button>
+              <button type="submit" className="btn primary push">Apply filters</button>
+            </div>
+          </form>
         )}
       </div>
-      {open && (
-        <form id="similar-filters" className="adv-form" onSubmit={apply}>
-          {rows.map((f, i) => (
-            <FilterRow
-              key={i}
-              filter={f}
-              index={i}
-              onChange={(next) => setRows(rows.map((r, j) => (j === i ? next : r)))}
-              onRemove={() => setRows(rows.filter((_, j) => j !== i))}
-            />
-          ))}
-          <div className="actions">
-            <button type="button" className="btn" disabled={rows.length >= MAX_FILTERS}
-                    onClick={() => setRows([...rows, defaultFilter()])}>
-              + Add filter
-            </button>
-            <button type="button" className="btn" onClick={() => setSearchParams(new URLSearchParams())}>
-              Clear filters
-            </button>
-            <button type="submit" className="btn primary">Apply filters</button>
-          </div>
-        </form>
-      )}
 
       {first.status === "loading" && <Loading />}
       {first.status === "error" && first.error && <SimilarError error={first.error} onRetry={first.reload} />}
@@ -111,8 +117,8 @@ function SimilarView({ id }: { id: string }) {
       )}
       {moreError && <ErrorState error={moreError} onRetry={showMore} />}
       {first.status === "ok" && canShowMore && !moreError && (
-        <div className="actions">
-          <button type="button" className="btn" disabled={loadingMore} onClick={showMore}>
+        <div className="actions more">
+          <button type="button" className="btn big" disabled={loadingMore} onClick={showMore}>
             {loadingMore ? "Loading…" : "Show more"}
           </button>
         </div>

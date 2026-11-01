@@ -38,20 +38,21 @@ function CardView({ id }: { id: string }) {
       {card.status === "error" && card.error && <ErrorState error={card.error} onRetry={card.reload} />}
       {card.status === "ok" && card.data && <Detail card={card.data} />}
 
-      <h2>Printings</h2>
-      {printings.status === "loading" && <Loading />}
-      {printings.status === "error" && printings.error && (
-        <ErrorState error={printings.error} onRetry={printings.reload} />
-      )}
-      {printings.status === "ok" && printings.data && (
-        <div className="printings">
-          {printings.data.map((p) => (
-            <PrintingItem key={p.id} printing={p} current={p.id === id} search={search} />
-          ))}
-        </div>
-      )}
+      <section id="printings" className="band" aria-labelledby="printings-h">
+        <h2 id="printings-h" className="subhead">Printings.</h2>
+        {printings.status === "loading" && <Loading count={4} />}
+        {printings.status === "error" && printings.error && (
+          <ErrorState error={printings.error} onRetry={printings.reload} />
+        )}
+        {printings.status === "ok" && printings.data && (
+          <div className="printings">
+            {printings.data.map((p) => (
+              <PrintingItem key={p.id} printing={p} current={p.id === id} search={search} />
+            ))}
+          </div>
+        )}
+      </section>
 
-      <h2>Similar cards</h2>
       <SimilarCards id={id} />
     </Layout>
   );
@@ -64,11 +65,10 @@ function Detail({ card }: { card: CardDetail }) {
   const setLine = [
     card.set_name,
     card.collector_number ? `#${card.collector_number}` : null,
-    card.rarity,
   ].filter(Boolean).join(" · ");
   const stats = card.power !== null && card.toughness !== null
-    ? `${card.power}/${card.toughness}`
-    : card.loyalty !== null ? `Loyalty ${card.loyalty}` : null;
+    ? { label: "Power / Toughness", value: `${card.power}/${card.toughness}` }
+    : card.loyalty !== null ? { label: "Loyalty", value: card.loyalty } : null;
   return (
     <div className="detail">
       {showImage ? (
@@ -77,15 +77,31 @@ function Detail({ card }: { card: CardDetail }) {
         <div className="detail-image tile-placeholder">{card.name}</div>
       )}
       <div className="detail-text">
-        <h1>
-          {card.name} {card.mana_cost && <span className="mana">{card.mana_cost}</span>}
-        </h1>
-        {card.type_line && <p>{card.type_line}</p>}
+        {card.type_line && <p className="eyebrow">{card.type_line}</p>}
+        <h1>{card.name}</h1>
+        {card.mana_cost && <span className="mana">{card.mana_cost}</span>}
+        {card.oracle_text && <p className="oracle">{card.oracle_text}</p>}
+        <div className="facts">
+          {card.cmc !== null && <Fact label="Mana value" value={String(card.cmc)} />}
+          {stats && <Fact label={stats.label} value={stats.value} />}
+          {card.rarity && <Fact label="Rarity" value={card.rarity} />}
+        </div>
         {setLine && <p className="muted">{setLine}</p>}
         {card.artist && <p className="muted">Artist: {card.artist}</p>}
-        {card.oracle_text && <p className="oracle">{card.oracle_text}</p>}
-        {stats && <p><strong>{stats}</strong></p>}
+        <div className="detail-actions">
+          <a href="#similar" className="btn primary big">Cards like this</a>
+          <a href="#printings">All printings ›</a>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="fact">
+      <div className="fact-label">{label}</div>
+      <div className="fact-value">{value}</div>
     </div>
   );
 }

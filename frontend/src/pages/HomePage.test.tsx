@@ -13,6 +13,11 @@ describe("HomePage", () => {
     expect(hrefs).toEqual(["/color/w", "/color/u", "/color/b", "/color/r", "/color/g", "/color/c"]);
   });
 
+  it("names each color under its pip", () => {
+    render(<MemoryRouter><HomePage /></MemoryRouter>);
+    expect(screen.getByRole("link", { name: "Random green cards" }).textContent).toBe("Ggreen");
+  });
+
   it("links to the advanced search", () => {
     render(<MemoryRouter><HomePage /></MemoryRouter>);
     expect(screen.getByRole("link", { name: "Advanced search" }).getAttribute("href")).toBe("/search");

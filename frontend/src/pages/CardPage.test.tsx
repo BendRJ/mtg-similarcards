@@ -64,6 +64,8 @@ describe("CardPage", () => {
     expect(screen.getByRole("link", { name: /2x2/i }).getAttribute("aria-current")).toBeNull();
     expect(await screen.findByText("Lightning Bolt")).toBeTruthy();
     expect(document.title).toBe("Shock");
+    expect(screen.getByText("Mana value").nextElementSibling?.textContent).toBe("2");
+    expect(screen.getByText("Rarity").nextElementSibling?.textContent).toBe("common");
     expect(api.similar).toHaveBeenCalledWith("a1", { filters: [], limit: 12, offset: 0 }, expect.any(AbortSignal));
   });
 
