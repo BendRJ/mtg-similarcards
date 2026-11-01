@@ -74,6 +74,16 @@ names and placeholders only, never real values). `DATABASE_URL` — the only DB 
 code reads — is currently documented nowhere outside `docker-compose.yml`. If those default
 credentials are used anywhere real, rotate them.
 
+### 5. Faces of multi-part cards are not stored
+
+Scryfall keeps rules text, colors and images of transform, modal double-faced, adventure and split
+cards on their faces, and the ETL stores only the top-level card. So ~980 real cards have NULL
+`oracle_text`, and double-faced cards also lack `colors` and image links (the same cause behind
+missing colors/images on those cards). In advanced search, "Rules text contains X" falls back to
+the card's `keywords` for them, "does not contain" never shows them, and they never match a color
+row (see the [advanced search design](./superpowers/specs/2026-11-01-advanced-search-design.md)).
+Fix: store the faces and search them.
+
 ### Smaller API rough edges
 
 From the final reviews of the API and frontend work, deferred:
