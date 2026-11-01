@@ -6,15 +6,12 @@ response models in app.backend.models. Column lists are always explicit, so the
 interpolated into SQL; every value is a bound parameter.
 """
 
-from pathlib import Path
 from typing import Any, LiteralString, cast
 
 import psycopg
 
 Cursor = psycopg.Cursor[dict[str, Any]]
 
-SQL_DIR = Path(__file__).parents[2] / "database" / "sql" / "queries"
-SIMILAR_CARDS_SQL = cast(LiteralString, (SQL_DIR / "similar_cards.sql").read_text())
 
 # One card across all its printings. Scryfall omits oracle_id on a few layouts
 # (e.g. reversible_card); such a printing counts as its own card.
@@ -130,8 +127,15 @@ def get_printings(cur: Cursor, card_id: str) -> list[dict[str, Any]]:
     return cur.fetchall()
 
 
-def similar_cards(cur: Cursor, card_id: str, limit: int) -> list[dict[str, Any]] | None:
-    """Most similar other cards, closest first.
+def similar_cards(cur: Cursor, card_id: str, limit: int, offset: int = 0,
+                  filters: list[dict[str, Any]] | None = None) -> list[dict[str, Any]] | None:
+    """Most similar other cards by rules-text embedding, closest first.
+
+    One row per card (latest matching printing), excluding the card itself and its
+    reprints. The reference vector comes from any embedded printing of the card, so an
+    older printing without an embedding still works. Optional advanced-search filters
+    (already validated) narrow the candidates before ranking, so a page always holds the
+    closest cards that match. Ties are broken by id, which keeps paging stable.
 
     None when no printing of the card has an embedding (including an unknown id),
     so callers can tell that apart from "embedded, but nothing else to compare".
@@ -147,7 +151,41 @@ def similar_cards(cur: Cursor, card_id: str, limit: int) -> list[dict[str, Any]]
     )
     if cur.fetchone() is None:
         return None
-    cur.execute(SIMILAR_CARDS_SQL, {"card_id": card_id, "limit": limit})
+
+    params: dict[str, Any] = {"card_id": card_id, "limit": limit, "offset": offset}
+    clauses: list[LiteralString] = []
+    for index, flt in enumerate(filters or []):
+        clause, clause_params = filter_clause(index, flt)
+        clauses.append(clause)
+        params.update(clause_params)
+    filter_sql: LiteralString = "".join(f" AND {clause}" for clause in clauses)
+
+    cur.execute(
+        f"""
+        WITH ref AS (
+            SELECT COALESCE(oracle_id, id) AS card_key, embedding
+            FROM cards
+            WHERE COALESCE(oracle_id, id) = (SELECT COALESCE(oracle_id, id) FROM cards WHERE id = %(card_id)s)
+              AND embedding IS NOT NULL
+            ORDER BY released_at DESC NULLS LAST
+            LIMIT 1
+        ), candidates AS (
+            SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS},
+                   c.embedding <=> ref.embedding AS distance
+            FROM cards c
+            CROSS JOIN ref
+            WHERE c.embedding IS NOT NULL
+              AND {CARD_KEY} <> ref.card_key
+              AND {PLAYABLE}{filter_sql}
+            ORDER BY {CARD_KEY}, {LATEST_PRINTING}
+        )
+        SELECT id, name, mana_cost, type_line, colors, rarity, set_code, image_url, distance
+        FROM candidates
+        ORDER BY distance, id
+        LIMIT %(limit)s OFFSET %(offset)s
+        """,
+        params,
+    )
     return cur.fetchall()
 
 

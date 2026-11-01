@@ -89,6 +89,52 @@ class TestAutocompleteRoute(CardRoutesTestCase):
         self.assertEqual(self.client.get("/cards/autocomplete?q=bo&limit=26").status_code, 422)
 
 
+class TestFilteredSimilarRoute(CardRoutesTestCase):
+    BODY = {"filters": [{"field": "type", "op": "contains", "value": " Creature "}], "limit": 2, "offset": 4}
+
+    @patch("app.backend.queries.similar_cards",
+           return_value=[{"id": f"s{i}", "name": f"S{i}", "distance": 0.1 * i} for i in range(3)])
+    @patch("app.backend.queries.get_card", return_value={"id": "a1", "name": "Bolt"})
+    def test_filtered_similar_pages_with_has_more(self, _, similar):
+        r = self.client.post("/cards/a1/similar", json=self.BODY)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual([c["id"] for c in r.json()["cards"]], ["s0", "s1"])
+        self.assertTrue(r.json()["has_more"])
+        similar.assert_called_once_with(unittest.mock.ANY, "a1", 3, offset=4,
+                                        filters=[{"field": "type", "op": "contains", "value": "Creature"}])
+
+    @patch("app.backend.queries.similar_cards", return_value=[{"id": "s0", "name": "S0", "distance": 0.1}])
+    @patch("app.backend.queries.get_card", return_value={"id": "a1", "name": "Bolt"})
+    def test_filtered_similar_last_page_and_defaults(self, _, similar):
+        r = self.client.post("/cards/a1/similar", json={})
+        self.assertFalse(r.json()["has_more"])
+        similar.assert_called_once_with(unittest.mock.ANY, "a1", 13, offset=0, filters=[])
+
+    @patch("app.backend.queries.similar_cards", return_value=None)
+    @patch("app.backend.queries.get_card", return_value={"id": "a1", "name": "Bolt"})
+    def test_filtered_similar_no_embedding_404(self, *_):
+        r = self.client.post("/cards/a1/similar", json={})
+        self.assertEqual(r.status_code, 404)
+        self.assertEqual(r.json()["detail"], "No embedding for this card yet.")
+
+    @patch("app.backend.queries.similar_cards")
+    @patch("app.backend.queries.get_card", return_value=None)
+    def test_filtered_similar_unknown_card_404(self, _, similar):
+        self.assertEqual(self.client.post("/cards/nope/similar", json={}).status_code, 404)
+        similar.assert_not_called()
+
+    @patch("app.backend.queries.similar_cards")
+    @patch("app.backend.queries.get_card", return_value={"id": "a1", "name": "Bolt"})
+    def test_filtered_similar_invalid_bodies_422(self, _, similar):
+        bad = [{"limit": 51}, {"limit": 0}, {"offset": -1}, {"offset": 1001},
+               {"filters": [{"field": "colors", "op": "contains", "value": "R"}]},
+               {"filters": [{"field": "name", "op": "contains", "value": "x"}] * 21}]
+        for body in bad:
+            with self.subTest(body=body):
+                self.assertEqual(self.client.post("/cards/a1/similar", json=body).status_code, 422)
+        similar.assert_not_called()
+
+
 class TestSimilarRoute(CardRoutesTestCase):
     @patch("app.backend.queries.similar_cards")
     @patch("app.backend.queries.get_card", return_value=None)

@@ -129,6 +129,37 @@ class TestAutocompleteQuery(DBTestCase):
 
 
 class TestSimilarQuery(DBTestCase):
+    def seed_mana_sources(self):
+        insert_card(self.cur, "birds", "Birds of Paradise", oracle_id="o0", embedding=vec(1, 0))
+        insert_card(self.cur, "elf", "Llanowar Elves", oracle_id="o1", type_line="Creature — Elf Druid",
+                    colors=["G"], embedding=vec(1, 0.1))
+        insert_card(self.cur, "rock", "Mind Stone", oracle_id="o2", type_line="Artifact",
+                    colors=[], embedding=vec(1, 0.2))
+        insert_card(self.cur, "hind", "Golden Hind", oracle_id="o3", type_line="Creature — Elk",
+                    colors=["G"], embedding=vec(1, 0.3))
+        insert_card(self.cur, "red", "Fire Dork", oracle_id="o4", type_line="Creature — Goblin",
+                    colors=["R"], embedding=vec(1, 0.4))
+
+    def test_similar_filters_keep_similarity_order(self):
+        self.seed_mana_sources()
+        filters = [{"field": "type", "op": "contains", "value": "Creature"},
+                   {"field": "colors", "op": "any", "value": ["G"]}]
+        result = queries.similar_cards(self.cur, "birds", 10, filters=filters)
+        self.assertEqual([c["id"] for c in result], ["elf", "hind"])
+
+    def test_similar_offset_pages_through_results(self):
+        self.seed_mana_sources()
+        first = [c["id"] for c in queries.similar_cards(self.cur, "birds", 2)]
+        second = [c["id"] for c in queries.similar_cards(self.cur, "birds", 2, offset=2)]
+        self.assertEqual(first, ["elf", "rock"])
+        self.assertEqual(second, ["hind", "red"])
+
+    def test_similar_equal_distance_ordered_by_id(self):
+        insert_card(self.cur, "ref", "Bolt", oracle_id="o0", embedding=vec(1))
+        for card_id, oracle in [("z", "o1"), ("a", "o2"), ("m", "o3")]:
+            insert_card(self.cur, card_id, card_id, oracle_id=oracle, embedding=vec(1))
+        self.assertEqual([c["id"] for c in queries.similar_cards(self.cur, "ref", 10)], ["a", "m", "z"])
+
     def test_similar_uses_scryfall_fallback(self):
         insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1))
         insert_card(self.cur, "s", "Shock", oracle_id="o2", embedding=vec(1),
