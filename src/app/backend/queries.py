@@ -36,6 +36,10 @@ COLLECTOR_ORDER: LiteralString = (
     "c.collector_number"
 )
 
+# Which printing represents a card: a physical one if any exists (digital = Arena/MTGO-only
+# printings sort last, false < true), then the newest, then collector order.
+LATEST_PRINTING: LiteralString = "c.digital, c.released_at DESC NULLS LAST, " + COLLECTOR_ORDER
+
 # A stored image wins (existence check only; the bytes are fetched by get_card_image alone).
 # Otherwise fall back to the Scryfall link, or NULL when the card has none.
 IMAGE_URL: LiteralString = """
@@ -96,7 +100,7 @@ def autocomplete_cards(cur: Cursor, query: str, limit: int) -> list[dict[str, An
                    c.image_uris->>'small' AS image_url_small
             FROM cards c
             WHERE c.name ILIKE %(contains)s AND {PLAYABLE}
-            ORDER BY {CARD_KEY}, c.released_at DESC NULLS LAST, {COLLECTOR_ORDER}
+            ORDER BY {CARD_KEY}, {LATEST_PRINTING}
         ) t
         ORDER BY (t.name ILIKE %(prefix)s) DESC, t.name
         LIMIT %(limit)s
@@ -210,7 +214,7 @@ def random_cards(cur: Cursor, colors: list[str], limit: int) -> list[dict[str, A
             SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS}
             FROM cards c
             WHERE {PLAYABLE} AND ({COLOR_FILTER})
-            ORDER BY {CARD_KEY}, c.released_at DESC NULLS LAST, {COLLECTOR_ORDER}
+            ORDER BY {CARD_KEY}, {LATEST_PRINTING}
         ) t
         ORDER BY random()
         LIMIT %(limit)s
@@ -314,7 +318,7 @@ def search_cards(cur: Cursor, filters: list[dict[str, Any]], sort: str,
             SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS}, c.cmc
             FROM cards c
             WHERE {PLAYABLE}{where}
-            ORDER BY {CARD_KEY}, c.released_at DESC NULLS LAST, {COLLECTOR_ORDER}
+            ORDER BY {CARD_KEY}, {LATEST_PRINTING}
         ) t
         ORDER BY {SEARCH_SORTS[sort]}
         LIMIT %(limit)s

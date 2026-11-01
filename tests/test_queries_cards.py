@@ -57,6 +57,12 @@ class TestCardQueries(DBTestCase):
 
 
 class TestAutocompleteQuery(DBTestCase):
+    def test_autocomplete_prefers_physical_over_newer_digital(self):
+        insert_card(self.cur, "paper", "Bolt", oracle_id="o1", released_at="2020-01-01", digital=False)
+        insert_card(self.cur, "arena", "Bolt", oracle_id="o1", released_at="2025-01-01", digital=True)
+        insert_card(self.cur, "alch", "Bolt Arena", oracle_id="o2", digital=True)
+        self.assertEqual({c["id"] for c in queries.autocomplete_cards(self.cur, "bolt", 10)}, {"paper", "alch"})
+
     def test_autocomplete_returns_scryfall_small_image(self):
         insert_card(self.cur, "a", "Bolt", oracle_id="o1",
                     image_uris=Jsonb({"small": "https://x/s.jpg", "normal": "https://x/n.jpg"}))
@@ -129,6 +135,12 @@ class TestSimilarQuery(DBTestCase):
                     image_uris=Jsonb({"normal": "https://x/s.jpg"}))
         self.assertEqual(queries.similar_cards(self.cur, "ref", 5)[0]["image_url"], "https://x/s.jpg")
 
+    def test_similar_prefers_physical_over_newer_digital(self):
+        insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1))
+        insert_card(self.cur, "paper", "Shock", oracle_id="o2", released_at="2020-01-01", digital=False, embedding=vec(1))
+        insert_card(self.cur, "arena", "Shock", oracle_id="o2", released_at="2025-01-01", digital=True, embedding=vec(1))
+        self.assertEqual([c["id"] for c in queries.similar_cards(self.cur, "ref", 10)], ["paper"])
+
     def test_similar_excludes_reprints_and_dedupes(self):
         insert_card(self.cur, "ref", "Bolt", oracle_id="o1", embedding=vec(1, 0))
         insert_card(self.cur, "ref2", "Bolt", oracle_id="o1", embedding=vec(1, 0))
@@ -180,6 +192,11 @@ class TestSimilarQuery(DBTestCase):
 
 
 class TestRandomQuery(DBTestCase):
+    def test_random_prefers_physical_over_newer_digital(self):
+        insert_card(self.cur, "paper", "Shock", oracle_id="o1", colors=["R"], released_at="2020-01-01", digital=False)
+        insert_card(self.cur, "arena", "Shock", oracle_id="o1", colors=["R"], released_at="2025-01-01", digital=True)
+        self.assertEqual([c["id"] for c in queries.random_cards(self.cur, ["R"], 100)], ["paper"])
+
     def test_random_any_of_colors_one_per_card_playable_only(self):
         insert_card(self.cur, "r_old", "Shock", oracle_id="o1", colors=["R"], released_at="2010-01-01")
         insert_card(self.cur, "r_new", "Shock", oracle_id="o1", colors=["R"], released_at="2025-01-01")

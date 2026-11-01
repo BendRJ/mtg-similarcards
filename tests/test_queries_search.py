@@ -163,6 +163,13 @@ class TestSearchQuery(DBTestCase):
         cards = queries.search_cards(self.cur, [f("name", "contains", "card")], "name")["cards"]
         self.assertEqual([c["id"] for c in cards], ["new"])
 
+    def test_physical_printing_preferred_over_newer_digital(self):
+        insert_card(self.cur, "paper", "Card", oracle_id="o1", released_at="2020-01-01", digital=False)
+        insert_card(self.cur, "arena", "Card", oracle_id="o1", released_at="2025-01-01", digital=True)
+        insert_card(self.cur, "alch", "A-Card", oracle_id="o2", released_at="2025-01-01", digital=True)
+        cards = queries.search_cards(self.cur, [f("name", "contains", "card")], "name")["cards"]
+        self.assertEqual([c["id"] for c in cards], ["alch", "paper"])
+
     def test_sort_cmc_asc_desc_nulls_last(self):
         insert_card(self.cur, "a1", "B", oracle_id="o1", cmc=2)
         insert_card(self.cur, "a2", "A", oracle_id="o2", cmc=2)
