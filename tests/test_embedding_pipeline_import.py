@@ -11,6 +11,11 @@ class TestEmbeddingPipelineImport(unittest.TestCase):
         import database.etl.embedding_pipeline as mod
         self.assertTrue(callable(mod.build_card_text))
 
+    def test_encoder_imports(self):
+        # run_embedding_pipeline imports this lazily, so check it explicitly.
+        from app.services.vector_service import generate_embeddings
+        self.assertTrue(callable(generate_embeddings))
+
 
 if __name__ == "__main__":
     unittest.main()

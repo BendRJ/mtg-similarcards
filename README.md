@@ -20,7 +20,7 @@ type and color filters.
 ```bash
 make db-up                               # postgres only
 make run-main SETS="FIN"                 # load some card data (see the run-pipeline runbook)
-make run-embeddings                      # embeddings for similar cards (sets released 2025+ only, for now)
+make run-embeddings                      # embeddings for similar cards (rules text; only cards still missing one)
 make docker-run                          # API on :8000 + frontend on :8080 (Ctrl-C to stop)
 ```
 

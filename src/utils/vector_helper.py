@@ -6,28 +6,21 @@ Provides functions to:
 from typing import Any
 
 def build_card_text(card: dict[str, Any]) -> str:
-    """Assemble a text representation of a card for embedding.
+    """Assemble the text that is embedded for "similar by text".
 
-    Combines the most semantically relevant fields into a single string.
+    The rules text, or the keywords for cards without one (multi-part cards keep their
+    rules text on the faces, which aren't stored). Type line and colors are left out on
+    purpose: similarity should follow what a card does, and colors combine freely.
 
     Args:
         card: A dict with card column values (from a DB row or similar).
+
+    Returns:
+        The text to embed, or "" when the card has neither rules text nor keywords.
     """
-    parts: list[str] = []
-
-    if type_line := card.get("type_line"):
-        parts.append(f"{type_line}\n")
-
     if oracle_text := card.get("oracle_text"):
-        parts.append(oracle_text)
-
-    # keywords is part of oracle text, might confuse the algo
-    # if keywords := card.get("keywords"):
-    #     if isinstance(keywords, list) and keywords:
-    #         parts.append(f"Keywords: {', '.join(keywords)}")
-
-    if colors := card.get("colors"):
-        if isinstance(colors, list) and colors:
-            parts.append(f"\nColors: {', '.join(colors)}")
-
-    return "".join(parts)
+        return oracle_text
+    keywords = card.get("keywords")
+    if isinstance(keywords, list) and keywords:
+        return ", ".join(keywords)
+    return ""
