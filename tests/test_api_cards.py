@@ -76,6 +76,12 @@ class TestAutocompleteRoute(CardRoutesTestCase):
         self.assertEqual(r.json()[0]["id"], "a1")
         autocomplete.assert_called_once_with(unittest.mock.ANY, "bo", 10)
 
+    @patch("app.backend.queries.autocomplete_cards",
+           return_value=[{"id": "a1", "name": "Bolt", "image_url_small": "https://x/s.jpg"}])
+    def test_autocomplete_response_includes_small_image(self, _):
+        self.assertEqual(self.client.get("/cards/autocomplete?q=bo").json()[0]["image_url_small"],
+                         "https://x/s.jpg")
+
     def test_autocomplete_q_too_short_422(self):
         self.assertEqual(self.client.get("/cards/autocomplete?q=b").status_code, 422)
 

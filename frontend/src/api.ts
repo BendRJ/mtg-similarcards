@@ -1,6 +1,6 @@
 import type { Color } from "./lib/colors";
 import { serializeColors } from "./lib/colors";
-import type { CardDetail, CardSummary, Printing, SetSummary, SimilarCard } from "./types";
+import type { AutocompleteCard, CardDetail, CardSummary, Printing, SetSummary, SimilarCard } from "./types";
 
 export class ApiError extends Error {
   status: number;
@@ -48,7 +48,7 @@ export function __resetSetsCacheForTests(): void {
 
 export const api = {
   autocomplete: (q: string, limit = 10, signal?: AbortSignal) =>
-    get<CardSummary[]>(withQuery("/cards/autocomplete", { q, limit: String(limit) }), signal),
+    get<AutocompleteCard[]>(withQuery("/cards/autocomplete", { q, limit: String(limit) }), signal),
 
   card: (id: string, signal?: AbortSignal) =>
     get<CardDetail>(`/cards/${encodeURIComponent(id)}`, signal),

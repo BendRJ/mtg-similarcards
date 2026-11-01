@@ -3,7 +3,7 @@ import type { KeyboardEvent } from "react";
 import { useNavigate } from "react-router";
 import { api } from "../api";
 import { matchSets } from "../lib/sets";
-import type { CardSummary, SetSummary } from "../types";
+import type { AutocompleteCard, SetSummary } from "../types";
 
 const MIN_CHARS = 2;
 const DEBOUNCE_MS = 150;
@@ -13,11 +13,16 @@ type SearchBarProps = {
   autoFocus?: boolean;
 };
 
-type Results = { query: string; cards: CardSummary[]; sets: SetSummary[]; unreachable: boolean };
+type Results = { query: string; cards: AutocompleteCard[]; sets: SetSummary[]; unreachable: boolean };
 
 type Row =
-  | { kind: "card"; card: CardSummary }
+  | { kind: "card"; card: AutocompleteCard }
   | { kind: "set"; set: SetSummary };
+
+// Small Scryfall image for the 26px thumbnail; the normal one only when there is no small.
+function thumbnail(card: AutocompleteCard): string | null {
+  return card.image_url_small ?? card.image_url;
+}
 
 function toRows({ cards, sets }: Results): Row[] {
   return [
@@ -46,7 +51,7 @@ export default function SearchBar({ size = "normal", autoFocus = false }: Search
     const timer = setTimeout(async () => {
       let failures = 0;
       const [cards, allSets] = await Promise.all([
-        api.autocomplete(trimmed, 10, controller.signal).catch((): CardSummary[] => {
+        api.autocomplete(trimmed, 10, controller.signal).catch((): AutocompleteCard[] => {
           failures += 1;
           return [];
         }),
@@ -130,8 +135,8 @@ export default function SearchBar({ size = "normal", autoFocus = false }: Search
         onClick={() => go(row)}
       >
         {row.kind === "card" ? (
-          row.card.image_url ? (
-            <img className="thumb" src={row.card.image_url} alt="" loading="lazy" />
+          thumbnail(row.card) ? (
+            <img className="thumb" src={thumbnail(row.card)!} alt="" loading="lazy" />
           ) : (
             <span className="thumb" />
           )

@@ -57,6 +57,14 @@ class TestCardQueries(DBTestCase):
 
 
 class TestAutocompleteQuery(DBTestCase):
+    def test_autocomplete_returns_scryfall_small_image(self):
+        insert_card(self.cur, "a", "Bolt", oracle_id="o1",
+                    image_uris=Jsonb({"small": "https://x/s.jpg", "normal": "https://x/n.jpg"}))
+        insert_card(self.cur, "b", "Boltwing", oracle_id="o2")
+        rows = {c["id"]: c for c in queries.autocomplete_cards(self.cur, "bolt", 10)}
+        self.assertEqual(rows["a"]["image_url_small"], "https://x/s.jpg")
+        self.assertIsNone(rows["b"]["image_url_small"])
+
     def test_autocomplete_dedupes_to_most_recent_printing(self):
         insert_card(self.cur, "old", "Lightning Bolt", oracle_id="o1", released_at="1993-08-05")
         insert_card(self.cur, "new", "Lightning Bolt", oracle_id="o1", released_at="2025-06-01")

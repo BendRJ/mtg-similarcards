@@ -92,7 +92,8 @@ def autocomplete_cards(cur: Cursor, query: str, limit: int) -> list[dict[str, An
     cur.execute(
         f"""
         SELECT * FROM (
-            SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS}
+            SELECT DISTINCT ON ({CARD_KEY}) {SUMMARY_COLUMNS},
+                   c.image_uris->>'small' AS image_url_small
             FROM cards c
             WHERE c.name ILIKE %(contains)s AND {PLAYABLE}
             ORDER BY {CARD_KEY}, c.released_at DESC NULLS LAST, {COLLECTOR_ORDER}

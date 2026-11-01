@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.backend import queries
 from app.backend.db import get_db_cursor
-from app.backend.models import CardDetail, CardSummary, Printing, SimilarCard
+from app.backend.models import AutocompleteCard, CardDetail, CardSummary, Printing, SimilarCard
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
@@ -10,7 +10,7 @@ router = APIRouter(prefix="/cards", tags=["cards"])
 # or FastAPI matches them as a card id.
 
 
-@router.get("/autocomplete", response_model=list[CardSummary],
+@router.get("/autocomplete", response_model=list[AutocompleteCard],
             description="Name suggestions while typing, one entry per card.")
 def autocomplete(q: str = Query(min_length=2),
                  limit: int = Query(10, ge=1, le=25),

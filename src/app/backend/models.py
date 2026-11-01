@@ -20,6 +20,11 @@ class CardSummary(BaseModel):
     image_url: str | None = None
 
 
+class AutocompleteCard(CardSummary):
+    # Scryfall's small image (146x204), enough for a dropdown thumbnail.
+    image_url_small: str | None = None
+
+
 class CardDetail(CardSummary):
     oracle_id: str | None = None
     cmc: float | None = None

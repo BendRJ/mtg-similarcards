@@ -11,6 +11,10 @@ export interface CardSummary {
   image_url: string | null;
 }
 
+export interface AutocompleteCard extends CardSummary {
+  image_url_small: string | null;
+}
+
 export interface CardDetail extends CardSummary {
   oracle_id: string | null;
   cmc: number | null;

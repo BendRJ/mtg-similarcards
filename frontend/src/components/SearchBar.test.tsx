@@ -3,13 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../api";
-import type { CardSummary, SetSummary } from "../types";
+import type { AutocompleteCard, SetSummary } from "../types";
 import SearchBar from "./SearchBar";
 
 vi.mock("../api");
 
-function card(id: string, name: string): CardSummary {
-  return { id, name, mana_cost: null, type_line: "Instant", colors: null, rarity: null, set_code: "mh3", image_url: null };
+function card(id: string, name: string, images: Partial<AutocompleteCard> = {}): AutocompleteCard {
+  return { id, name, mana_cost: null, type_line: "Instant", colors: null, rarity: null, set_code: "mh3", image_url: null, image_url_small: null, ...images };
 }
 const SETS: SetSummary[] = [
   { code: "mh3", name: "Modern Horizons 3", released_at: "2024-06-14", set_type: "draft_innovation", card_count: 1, icon_svg_uri: null },
@@ -54,6 +54,18 @@ describe("SearchBar", () => {
   });
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it("uses the small image for card thumbnails, falling back to the normal one", async () => {
+    vi.mocked(api.autocomplete).mockResolvedValue([
+      card("c1", "Modern Age", { image_url: "https://x/n1.jpg", image_url_small: "https://x/s1.jpg" }),
+      card("c2", "Modular Monstrosity", { image_url: "https://x/n2.jpg" }),
+    ]);
+    const { user, input } = setup();
+    await user.type(input, "mod");
+    await settle();
+    const thumbs = [...document.querySelectorAll("img.thumb")].map((img) => img.getAttribute("src"));
+    expect(thumbs).toEqual(["https://x/s1.jpg", "https://x/n2.jpg"]);
   });
 
   it("waits for two characters before searching", async () => {
@@ -130,8 +142,8 @@ describe("SearchBar", () => {
   });
 
   it("ignores a stale response that arrives after a newer one", async () => {
-    const slow = deferred<CardSummary[]>();
-    const fast = deferred<CardSummary[]>();
+    const slow = deferred<AutocompleteCard[]>();
+    const fast = deferred<AutocompleteCard[]>();
     vi.mocked(api.autocomplete).mockImplementation((q) => (q === "bo" ? slow.promise : fast.promise));
     const { user, input } = setup();
     await user.type(input, "bo");
