@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { SimilarRequest } from "./types";
 import { ApiError, __resetSetsCacheForTests, api } from "./api";
 
 function stubFetch(body: unknown, status = 200) {
@@ -42,12 +43,16 @@ describe("api", () => {
     const fn = stubFetch({});
     await api.card("a/b");
     await api.printings("x");
-    await api.similar("x");
-    expect(fn.mock.calls.map((c) => c[0])).toEqual([
-      "/cards/a%2Fb",
-      "/cards/x/printings",
-      "/cards/x/similar?limit=12",
-    ]);
+    expect(fn.mock.calls.map((c) => c[0])).toEqual(["/cards/a%2Fb", "/cards/x/printings"]);
+  });
+
+  it("posts the similar request with filters, limit and offset", async () => {
+    const fn = stubFetch({ cards: [], has_more: false });
+    const req: SimilarRequest = { filters: [{ field: "type", op: "contains", value: "Creature" }], limit: 12, offset: 24 };
+    await api.similar("a/b", req);
+    expect(fn.mock.calls[0][0]).toBe("/cards/a%2Fb/similar");
+    expect(fn.mock.calls[0][1].method).toBe("POST");
+    expect(JSON.parse(fn.mock.calls[0][1].body)).toEqual(req);
   });
 
   it("passes the signal to fetch", async () => {

@@ -1,14 +1,8 @@
 import type { Color } from "./lib/colors";
 import { serializeColors } from "./lib/colors";
 import type {
-  AutocompleteCard,
-  CardDetail,
-  CardSummary,
-  Printing,
-  SearchRequest,
-  SearchResponse,
-  SetSummary,
-  SimilarCard,
+  AutocompleteCard, CardDetail, CardSummary, Printing, SearchRequest, SearchResponse, SetSummary,
+  SimilarPage, SimilarRequest,
 } from "./types";
 
 export class ApiError extends Error {
@@ -78,11 +72,8 @@ export const api = {
   printings: (id: string, signal?: AbortSignal) =>
     get<Printing[]>(`/cards/${encodeURIComponent(id)}/printings`, signal),
 
-  similar: (id: string, limit = 12, signal?: AbortSignal) =>
-    get<SimilarCard[]>(
-      withQuery(`/cards/${encodeURIComponent(id)}/similar`, { limit: String(limit) }),
-      signal,
-    ),
+  similar: (id: string, req: SimilarRequest, signal?: AbortSignal) =>
+    post<SimilarPage>(`/cards/${encodeURIComponent(id)}/similar`, req, signal),
 
   search: (req: SearchRequest, signal?: AbortSignal) =>
     post<SearchResponse>("/cards/search", req, signal),

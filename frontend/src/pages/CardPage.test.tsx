@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api, ApiError } from "../api";
 import type { CardDetail, Printing, SimilarCard } from "../types";
@@ -24,10 +24,22 @@ function printing(id: string, set: string): Printing {
 }
 const SIMILAR: SimilarCard = { id: "s1", name: "Lightning Bolt", mana_cost: null, type_line: null, colors: null, rarity: null, set_code: null, image_url: null, distance: 0.1 };
 
+function page(cards: SimilarCard[], has_more = false) {
+  return { cards, has_more };
+}
+function similarCard(id: string, name: string): SimilarCard {
+  return { ...SIMILAR, id, name };
+}
+
+function Where() {
+  const loc = useLocation();
+  return <div data-testid="where">{loc.pathname + loc.search}</div>;
+}
+
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <Routes><Route path="/card/:id" element={<CardPage />} /></Routes>
+      <Routes><Route path="/card/:id" element={<><CardPage /><Where /></>} /></Routes>
     </MemoryRouter>,
   );
 }
@@ -36,7 +48,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(api.card).mockResolvedValue(detail("a1", "Shock", "Deals 2 damage."));
   vi.mocked(api.printings).mockResolvedValue([printing("a1", "lea"), printing("a2", "2x2")]);
-  vi.mocked(api.similar).mockResolvedValue([SIMILAR]);
+  vi.mocked(api.similar).mockResolvedValue(page([SIMILAR]));
 });
 
 describe("CardPage", () => {
@@ -52,7 +64,7 @@ describe("CardPage", () => {
     expect(screen.getByRole("link", { name: /2x2/i }).getAttribute("aria-current")).toBeNull();
     expect(await screen.findByText("Lightning Bolt")).toBeTruthy();
     expect(document.title).toBe("Shock");
-    expect(api.similar).toHaveBeenCalledWith("a1", 12, expect.any(AbortSignal));
+    expect(api.similar).toHaveBeenCalledWith("a1", { filters: [], limit: 12, offset: 0 }, expect.any(AbortSignal));
   });
 
   it("shows the large image on the card page", async () => {
@@ -77,6 +89,62 @@ describe("CardPage", () => {
     const { container } = renderAt("/card/a1");
     await screen.findByText("Lightning Bolt");
     expect(container.querySelector(".grid")).not.toBeNull();
+  });
+
+  it("applies the filters from the URL and keeps them on similar-card links", async () => {
+    renderAt("/card/a1?f=type.contains.Creature&f=colors.any.G");
+    const tile = await screen.findByRole("link", { name: "Lightning Bolt" });
+    expect(api.similar).toHaveBeenCalledWith("a1", {
+      filters: [{ field: "type", op: "contains", value: "Creature" }, { field: "colors", op: "any", value: ["G"] }],
+      limit: 12, offset: 0,
+    }, expect.any(AbortSignal));
+    expect(tile.getAttribute("href")).toBe("/card/s1?f=type.contains.Creature&f=colors.any.G");
+    expect(screen.getByRole("button", { name: "Filter similar cards" }).getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("builds a filter in the panel and applies it through the URL", async () => {
+    const user = userEvent.setup();
+    renderAt("/card/a1");
+    await screen.findByText("Lightning Bolt");
+    const toggle = screen.getByRole("button", { name: "Filter similar cards" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    await user.click(toggle);
+    await user.selectOptions(screen.getByRole("combobox", { name: "Field" }), "type");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Condition" }), "contains");
+    await user.type(screen.getByRole("textbox", { name: "Value" }), "Creature");
+    await user.click(screen.getByRole("button", { name: "Apply filters" }));
+    expect(screen.getByTestId("where").textContent).toBe("/card/a1?f=type.contains.Creature");
+    expect(api.similar).toHaveBeenLastCalledWith("a1", {
+      filters: [{ field: "type", op: "contains", value: "Creature" }], limit: 12, offset: 0,
+    }, expect.any(AbortSignal));
+  });
+
+  it("clears the filters", async () => {
+    const user = userEvent.setup();
+    renderAt("/card/a1?f=type.contains.Creature");
+    await screen.findByText("Lightning Bolt");
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(screen.getByTestId("where").textContent).toBe("/card/a1");
+  });
+
+  it("shows no matches when the filters leave nothing", async () => {
+    vi.mocked(api.similar).mockResolvedValue(page([]));
+    renderAt("/card/a1?f=type.contains.Creature");
+    expect(await screen.findByText("No similar cards match these filters.")).toBeTruthy();
+  });
+
+  it("loads more similar cards with Show more until there are none left", async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.similar)
+      .mockResolvedValueOnce(page([similarCard("s1", "First")], true))
+      .mockResolvedValueOnce(page([similarCard("s2", "Second")], false));
+    renderAt("/card/a1");
+    await screen.findByText("First");
+    await user.click(screen.getByRole("button", { name: "Show more" }));
+    expect(await screen.findByText("Second")).toBeTruthy();
+    expect(screen.getByText("First")).toBeTruthy();
+    expect(api.similar).toHaveBeenLastCalledWith("a1", { filters: [], limit: 12, offset: 1 }, expect.any(AbortSignal));
+    expect(screen.queryByRole("button", { name: "Show more" })).toBeNull();
   });
 
   it("shows a hint when similar cards are unavailable but keeps the page", async () => {
