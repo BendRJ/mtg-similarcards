@@ -37,6 +37,11 @@ describe("App routing", () => {
     expect(screen.getByRole("link", { name: "Advanced search" }).getAttribute("aria-current")).toBeNull();
   });
 
+  it("marks Discover as current only on the home page", () => {
+    renderAt("/");
+    expect(screen.getByRole("link", { name: "Discover" }).getAttribute("aria-current")).toBe("page");
+  });
+
   it("shows not found for the plural API path /cards", () => {
     renderAt("/cards");
     expect(screen.getByText("Page not found")).toBeTruthy();

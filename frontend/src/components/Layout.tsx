@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router";
 import SearchBar from "./SearchBar";
+import ThemeToggle from "./ThemeToggle";
 
 type LayoutProps = {
   showSearch?: boolean;
@@ -13,19 +14,18 @@ export default function Layout({ showSearch = true, children }: LayoutProps) {
       {/* Full-width band; the inner div keeps the content at the page width. */}
       <header className="topbar">
         <nav className="topbar-inner" aria-label="Main">
-          <Link to="/" className="logo">
-            <span className="logo-mark" aria-hidden="true">S</span>
-            MTG Similar Cards
-          </Link>
+          <Link to="/" className="logo">Similar Cards</Link>
+          {/* NavLink sets aria-current="page" on its own page, which also drives the active style. */}
+          <div className="nav-links">
+            <NavLink to="/" end className="nav-link">Discover</NavLink>
+            <NavLink to="/search" className="nav-link">Advanced search</NavLink>
+          </div>
           {showSearch ? (
             <div className="search-slot">
               <SearchBar />
             </div>
           ) : null}
-          {/* NavLink sets aria-current="page" on its own page, which also drives the active style. */}
-          <NavLink to="/search" className="nav-btn">
-            Advanced search
-          </NavLink>
+          <ThemeToggle />
         </nav>
       </header>
       <main className="content">{children}</main>
