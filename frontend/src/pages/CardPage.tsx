@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
-import { api, ApiError } from "../api";
-import CardGrid from "../components/CardGrid";
+import { Link, useParams, useSearchParams } from "react-router";
+import { api } from "../api";
 import ErrorState from "../components/ErrorState";
 import Layout from "../components/Layout";
 import Loading from "../components/Loading";
+import SimilarCards from "../components/SimilarCards";
+import { filtersQuery } from "../lib/searchFilters";
 import { useAsync } from "../lib/useAsync";
 import type { CardDetail, Printing } from "../types";
 import NotFoundPage from "./NotFoundPage";
@@ -18,7 +19,9 @@ export default function CardPage() {
 function CardView({ id }: { id: string }) {
   const card = useAsync((s) => api.card(id, s), [id]);
   const printings = useAsync((s) => api.printings(id, s), [id]);
-  const similar = useAsync((s) => api.similar(id, 12, s), [id]);
+  const [searchParams] = useSearchParams();
+  // Printing links keep the similar-cards filters, so switching printings doesn't lose them.
+  const search = filtersQuery(searchParams);
 
   const name = card.data?.name;
   useEffect(() => {
@@ -43,24 +46,15 @@ function CardView({ id }: { id: string }) {
       {printings.status === "ok" && printings.data && (
         <div className="printings">
           {printings.data.map((p) => (
-            <PrintingItem key={p.id} printing={p} current={p.id === id} />
+            <PrintingItem key={p.id} printing={p} current={p.id === id} search={search} />
           ))}
         </div>
       )}
 
       <h2>Similar cards</h2>
-      {similar.status === "loading" && <Loading />}
-      {similar.status === "error" && similar.error && <SimilarError error={similar.error} onRetry={similar.reload} />}
-      {similar.status === "ok" && similar.data && <CardGrid cards={similar.data} />}
+      <SimilarCards id={id} />
     </Layout>
   );
-}
-
-function SimilarError({ error, onRetry }: { error: ApiError; onRetry: () => void }) {
-  if (error.status === 404 && error.detail !== "Card not found.") {
-    return <p className="muted">Similar cards aren't available for this card yet</p>;
-  }
-  return <ErrorState error={error} onRetry={onRetry} />;
 }
 
 function Detail({ card }: { card: CardDetail }) {
@@ -96,12 +90,12 @@ function Detail({ card }: { card: CardDetail }) {
   );
 }
 
-function PrintingItem({ printing, current }: { printing: Printing; current: boolean }) {
+function PrintingItem({ printing, current, search }: { printing: Printing; current: boolean; search: string }) {
   const year = printing.released_at?.slice(0, 4);
   const label = [printing.set_code?.toUpperCase(), year].filter(Boolean).join(" ") || "Printing";
   return (
     <Link
-      to={`/card/${encodeURIComponent(printing.id)}`}
+      to={`/card/${encodeURIComponent(printing.id)}${search}`}
       className={current ? "printing sel" : "printing"}
       aria-current={current ? "true" : undefined}
     >

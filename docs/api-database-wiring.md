@@ -9,8 +9,8 @@ matches the code before acting on it.
 
 ## Where things stand
 
-- Routes live in `src/app/backend/routers/`, all SQL in `src/app/backend/queries.py` plus
-  `src/database/sql/queries/similar_cards.sql`, response models in `src/app/backend/models.py`.
+- Routes live in `src/app/backend/routers/`, all SQL in `src/app/backend/queries.py`, response
+  models in `src/app/backend/models.py`.
 - Each request gets one connection via `get_db_cursor()` (`src/app/backend/db.py`), a `dict_row`
   cursor over `database.db.get_db_connection()`.
 - psycopg errors map to **503** with a generic message; details are logged server-side only.
@@ -40,12 +40,18 @@ already injected `DATABASE_URL` with the `postgres` bridge hostname, so it wins.
 
 ## Open items
 
-### 1. Embeddings only cover sets from 2025 on
+### 1. Embeddings: what they cover (resolved 2026-11-01)
 
-`src/database/etl/embedding_pipeline.py` selects cards with
-`sets.released_at >= '2025-01-01'`. Cards from older sets have no embedding, so
-`/cards/{id}/similar` returns 404 for them and never suggests them. Removing the filter means one
-long embedding run over every loaded card (~117k today).
+`src/database/etl/embedding_pipeline.py` now embeds every card without an embedding, from all
+years. The embedded text is the rules text only, or the keywords for cards without rules text
+(`utils.vector_helper.build_card_text`); type line and colors are left out. Each distinct text is
+encoded once (~32k texts for ~117k printings) and its vector written to every printing with it,
+committing per batch, so an interrupted run resumes where it stopped. Cards with neither rules text
+nor keywords stay without an embedding (`/similar` answers 404 "No embedding" for them).
+
+**When the embedded text changes** (a new recipe in `build_card_text` or a new model), existing
+vectors are stale: run `make reset-embeddings`, then `make run-embeddings`. The pipeline only fills
+missing vectors; it doesn't detect changed text.
 
 ### 2. No index on `embedding`
 

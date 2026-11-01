@@ -156,3 +156,10 @@ export function toRequest(filters: Filter[], sort: Sort): SearchRequest | null {
     sort,
   };
 }
+
+// "?f=…" for the valid filters in params (sort dropped), or "" when there are none.
+// Lets links carry the similar-cards filters from one card page to the next.
+export function filtersQuery(params: URLSearchParams): string {
+  const query = toSearchParams(parseSearchParams(params).filters, "name").toString();
+  return query ? `?${query}` : "";
+}

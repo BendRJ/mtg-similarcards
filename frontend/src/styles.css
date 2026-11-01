@@ -100,8 +100,10 @@ a { color: var(--accent); }
 .remove { margin-left: auto; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; background: var(--panel); color: var(--muted); font: inherit; cursor: pointer; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
 .actions .btn { margin-left: 0; }
+.similar-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+.similar-tools .btn { margin-left: 0; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
-.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .sort { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .count { margin: 16px 0 0; font-size: 13px; }
 @media (max-width: 480px) { .inp { min-width: 0; flex-basis: 100%; } }

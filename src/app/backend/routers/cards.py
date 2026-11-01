@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from app.backend import queries
 from app.backend.db import get_db_cursor
 from app.backend.models import (AutocompleteCard, CardDetail, CardSummary, Printing, SearchRequest,
-                                SearchResponse, SimilarCard)
+                                SearchResponse, SimilarCard, SimilarPage, SimilarRequest)
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
@@ -65,6 +65,20 @@ def get_similar(card_id: str,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="No embedding for this card yet.")
     return similar
+
+
+@router.post("/{card_id}/similar", response_model=SimilarPage,
+             description="Similar cards narrowed by advanced-search filters, closest first, paged.")
+def get_similar_filtered(card_id: str, req: SimilarRequest, cur: queries.Cursor = Depends(get_db_cursor)):
+    if queries.get_card(cur, card_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Card not found.")
+    # One extra row tells whether another page exists.
+    similar = queries.similar_cards(cur, card_id, req.limit + 1, offset=req.offset,
+                                    filters=[f.model_dump() for f in req.filters])
+    if similar is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="No embedding for this card yet.")
+    return {"cards": similar[:req.limit], "has_more": len(similar) > req.limit}
 
 
 # Images of a printing never change, so browsers may cache them for a year.

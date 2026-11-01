@@ -52,7 +52,6 @@ mtg-similarcards/
 │   │   ├── schemas/                    # JSON schema definitions (cards_*, sets)
 │   │   └── sql/
 │   │       ├── create_tables/          # Table DDL, numerically ordered by FK dependency
-│   │       ├── queries/                # similar_cards.sql and other read queries
 │   │       └── upsert/                 # cards_upsert.sql, sets_upsert.sql
 │   ├── training/
 │   │   └── generate_training_data.py   # Build fine-tuning training pairs
@@ -93,7 +92,7 @@ mtg-similarcards/
 - **Advanced search:** `POST /cards/search` (`src/app/backend/routers/cards.py`) and the `/search` page (`frontend/src/pages/AdvancedSearchPage.tsx`); filters are AND-combined and live in the URL (`?f=field.operator.value`).
 - **Pipeline orchestration:** `src/database/etl/pipeline.py` — `DataPipeline.run`.
 - **Database access:** `src/database/db.py` — connection helpers (`get_cursor`, `get_db_connection`, `test_connection`).
-- **Similarity query:** `src/database/sql/queries/similar_cards.sql`, called from `src/app/backend/queries.py`.
+- **Similarity query:** `similar_cards()` in `src/app/backend/queries.py` (optionally narrowed by the advanced-search filters).
 - **Embeddings:** `src/database/etl/embedding_pipeline.py` + `src/app/services/vector_service.py`.
 
 ## Related

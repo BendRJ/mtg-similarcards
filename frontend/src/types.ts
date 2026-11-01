@@ -67,6 +67,17 @@ export interface SearchRequest {
   sort: "name" | "cmc_asc" | "cmc_desc";
 }
 
+export interface SimilarRequest {
+  filters: SearchFilter[];
+  limit: number;
+  offset: number;
+}
+
+export interface SimilarPage {
+  cards: SimilarCard[];
+  has_more: boolean;
+}
+
 export interface SearchResponse {
   // total is the full match count, cards holds at most 200.
   total: number;

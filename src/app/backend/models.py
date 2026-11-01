@@ -125,6 +125,18 @@ class SearchRequest(BaseModel):
     sort: Literal["name", "cmc_asc", "cmc_desc"] = "name"
 
 
+class SimilarRequest(BaseModel):
+    # The same filters as the advanced search, but optional: none means "all similar cards".
+    filters: list[SearchFilter] = Field(default_factory=list, max_length=20)
+    limit: int = Field(12, ge=1, le=50)
+    offset: int = Field(0, ge=0, le=1000)
+
+
+class SimilarPage(BaseModel):
+    cards: list[SimilarCard]
+    has_more: bool
+
+
 class SearchResponse(BaseModel):
     # total is the full match count, cards holds at most 200.
     total: int
